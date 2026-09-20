@@ -5,26 +5,26 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
-import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.junit.jupiter.api.Test;
 
-final class GuiScreenFlowTest {
+final class GuiScreenSetTest {
     @Test
-    void reproducesMainAndSecondScreenTransitionsWithoutPaper() {
-        GuiScreenFlow flow = DemoGuiScreens.createFlow();
+    void buttonsOwnMainAndSecondScreenTransitionsWithoutPaper() {
+        GuiScreenSet screens = DemoGuiScreens.createSet();
 
-        GuiScreen main = flow.initialScreen();
-        GuiScreen second = flow.transition(main, main.button().id());
-        GuiScreen returnedMain = flow.transition(second, second.button().id());
+        GuiScreen main = screens.initialScreen();
+        GuiScreen second = screens.targetScreen(main.button());
+        GuiScreen returnedMain = screens.targetScreen(second.button());
 
         assertEquals("main", main.id());
         assertEquals(
                 Component.text("Main Screen", NamedTextColor.GOLD).decorate(TextDecoration.BOLD),
                 main.title());
         assertEquals("next", main.button().id());
+        assertEquals("second", main.button().targetScreenId());
         assertEquals(Component.text("  Next  ", NamedTextColor.WHITE), main.button().label());
         assertEquals(new GuiVector(0.0, -0.15, 0.0), main.button().position());
         assertEquals(0.8F, main.button().width());
@@ -34,32 +34,30 @@ final class GuiScreenFlowTest {
                 Component.text("Second Screen", NamedTextColor.GOLD).decorate(TextDecoration.BOLD),
                 second.title());
         assertEquals("back", second.button().id());
+        assertEquals("main", second.button().targetScreenId());
         assertSame(main, returnedMain);
     }
 
     @Test
     void rejectsDuplicateScreenIds() {
-        GuiScreen first = screen("same", "first-button");
-        GuiScreen duplicate = screen("same", "second-button");
+        GuiScreen first = screen("same", "first-button", "same");
+        GuiScreen duplicate = screen("same", "second-button", "same");
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> new GuiScreenFlow("same", List.of(first, duplicate), Map.of()));
+                () -> new GuiScreenSet("same", List.of(first, duplicate)));
     }
 
     @Test
-    void rejectsTransitionForUnknownButtonId() {
-        GuiScreen screen = screen("screen", "known-button");
+    void rejectsUnknownTargetScreenId() {
+        GuiScreen screen = screen("screen", "button", "unknown");
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> new GuiScreenFlow(
-                        screen.id(),
-                        List.of(screen),
-                        Map.of(new GuiScreenFlow.Transition(screen.id(), "unknown-button"), screen.id())));
+                () -> new GuiScreenSet(screen.id(), List.of(screen)));
     }
 
-    private static GuiScreen screen(String screenId, String buttonId) {
+    private static GuiScreen screen(String screenId, String buttonId, String targetScreenId) {
         return new GuiScreen(
                 screenId,
                 Component.text("Title"),
@@ -69,6 +67,7 @@ final class GuiScreenFlowTest {
                         Component.text("Button"),
                         new GuiVector(0.0, -0.15, 0.0),
                         1.2F,
-                        0.45F));
+                        0.45F,
+                        targetScreenId));
     }
 }

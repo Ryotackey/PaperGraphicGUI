@@ -20,12 +20,12 @@ final class FloatingGuiManager {
     private static final double MAX_GUI_DISTANCE_SQUARED = 6.0 * 6.0;
 
     private final Plugin plugin;
-    private final GuiScreenFlow screenFlow;
+    private final GuiScreenSet screens;
     private final Map<UUID, FloatingGuiSession> sessions = new HashMap<>();
 
     FloatingGuiManager(Plugin plugin) {
         this.plugin = plugin;
-        this.screenFlow = DemoGuiScreens.createFlow();
+        this.screens = DemoGuiScreens.createSet();
     }
 
     void open(Player owner) {
@@ -37,7 +37,7 @@ final class FloatingGuiManager {
         List<Entity> spawnedEntities = new ArrayList<>(3);
 
         try {
-            GuiScreen initialScreen = this.screenFlow.initialScreen();
+            GuiScreen initialScreen = this.screens.initialScreen();
             TextDisplay title = spawnTitle(
                     toLocation(world, transform.toWorld(initialScreen.titlePosition())),
                     initialScreen);
@@ -105,8 +105,7 @@ final class FloatingGuiManager {
             return false;
         }
 
-        GuiScreen nextScreen =
-                this.screenFlow.transition(session.screen(), session.screen().button().id());
+        GuiScreen nextScreen = this.screens.targetScreen(session.screen().button());
         renderScreen(session, nextScreen);
         this.sessions.put(player.getUniqueId(), session.withScreen(nextScreen));
         return true;

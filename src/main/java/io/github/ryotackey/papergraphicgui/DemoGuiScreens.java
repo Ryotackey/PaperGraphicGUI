@@ -1,7 +1,6 @@
 package io.github.ryotackey.papergraphicgui;
 
 import java.util.List;
-import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -14,24 +13,31 @@ final class DemoGuiScreens {
 
     private DemoGuiScreens() {}
 
-    static GuiScreenFlow createFlow() {
+    static GuiScreenSet createSet() {
         GuiScreen main = new GuiScreen(
                 "main",
                 title("Main Screen"),
                 TITLE_POSITION,
-                new GuiButton("next", buttonLabel("Next"), BUTTON_POSITION, BUTTON_WIDTH, BUTTON_HEIGHT));
+                new GuiButton(
+                        "next",
+                        buttonLabel("Next"),
+                        BUTTON_POSITION,
+                        BUTTON_WIDTH,
+                        BUTTON_HEIGHT,
+                        "second"));
         GuiScreen second = new GuiScreen(
                 "second",
                 title("Second Screen"),
                 TITLE_POSITION,
-                new GuiButton("back", buttonLabel("Back"), BUTTON_POSITION, BUTTON_WIDTH, BUTTON_HEIGHT));
+                new GuiButton(
+                        "back",
+                        buttonLabel("Back"),
+                        BUTTON_POSITION,
+                        BUTTON_WIDTH,
+                        BUTTON_HEIGHT,
+                        "main"));
 
-        return new GuiScreenFlow(
-                main.id(),
-                List.of(main, second),
-                Map.of(
-                        new GuiScreenFlow.Transition(main.id(), main.button().id()), second.id(),
-                        new GuiScreenFlow.Transition(second.id(), second.button().id()), main.id()));
+        return new GuiScreenSet(main.id(), List.of(main, second));
     }
 
     private static Component title(String text) {
