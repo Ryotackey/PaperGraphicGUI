@@ -10,13 +10,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Vector;
 
 final class FloatingGuiManager {
     private static final double GUI_DISTANCE = 2.5;
@@ -36,20 +36,26 @@ final class FloatingGuiManager {
     void open(Player owner) {
         close(owner);
 
-        Location anchor = calculateAnchor(owner);
+        GuiTransform transform = calculateTransform(owner);
+        World world = owner.getWorld();
+        Location anchor = toLocation(world, transform.origin());
         List<Entity> spawnedEntities = new ArrayList<>(3);
 
         try {
             GuiScreen initialScreen = GuiScreen.MAIN;
-            TextDisplay title = spawnTitle(anchor.clone().add(0, TITLE_OFFSET_Y, 0), initialScreen);
+            TextDisplay title = spawnTitle(
+                    toLocation(world, transform.toWorld(new GuiVector(0.0, TITLE_OFFSET_Y, 0.0))),
+                    initialScreen);
             spawnedEntities.add(title);
 
-            Location buttonLocation = anchor.clone().add(0, BUTTON_OFFSET_Y, 0);
+            Location buttonLocation =
+                    toLocation(world, transform.toWorld(new GuiVector(0.0, BUTTON_OFFSET_Y, 0.0)));
             TextDisplay button = spawnButton(buttonLocation, initialScreen);
             spawnedEntities.add(button);
 
-            Interaction interaction = spawnButtonInteraction(
-                    buttonLocation.clone().subtract(0, BUTTON_HEIGHT / 2.0, 0));
+            Interaction interaction = spawnButtonInteraction(toLocation(
+                    world,
+                    transform.toWorld(new GuiVector(0.0, BUTTON_OFFSET_Y - BUTTON_HEIGHT / 2.0, 0.0))));
             spawnedEntities.add(interaction);
 
             for (Entity entity : spawnedEntities) {
@@ -165,18 +171,18 @@ final class FloatingGuiManager {
         return Component.text("  " + screen.buttonLabel() + "  ", NamedTextColor.WHITE);
     }
 
-    private static Location calculateAnchor(Player player) {
+    private static GuiTransform calculateTransform(Player player) {
         Location eyeLocation = player.getEyeLocation();
-        Vector forward = eyeLocation.getDirection().setY(0);
+        org.bukkit.util.Vector viewDirection = eyeLocation.getDirection();
+        return GuiTransform.fromView(
+                new GuiVector(eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ()),
+                new GuiVector(viewDirection.getX(), viewDirection.getY(), viewDirection.getZ()),
+                eyeLocation.getYaw(),
+                GUI_DISTANCE);
+    }
 
-        if (forward.lengthSquared() < 1.0E-6) {
-            double yawRadians = Math.toRadians(eyeLocation.getYaw());
-            forward = new Vector(-Math.sin(yawRadians), 0, Math.cos(yawRadians));
-        } else {
-            forward.normalize();
-        }
-
-        return eyeLocation.add(forward.multiply(GUI_DISTANCE));
+    private static Location toLocation(World world, GuiVector position) {
+        return new Location(world, position.x(), position.y(), position.z());
     }
 
     private record FloatingGuiSession(
