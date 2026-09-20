@@ -27,8 +27,6 @@ final class GuiScreenSetTest {
         assertEquals("second", main.button().targetScreenId());
         assertEquals(Component.text("  Next  ", NamedTextColor.WHITE), main.button().label());
         assertEquals(new GuiVector(0.0, -0.15, 0.0), main.button().position());
-        assertEquals(0.8F, main.button().width());
-        assertEquals(0.3F, main.button().height());
         assertEquals("second", second.id());
         assertEquals(
                 Component.text("Second Screen", NamedTextColor.GOLD).decorate(TextDecoration.BOLD),
@@ -66,8 +64,6 @@ final class GuiScreenSetTest {
                         buttonId,
                         Component.text("Button"),
                         new GuiVector(0.0, -0.15, 0.0),
-                        1.2F,
-                        0.45F,
                         targetScreenId));
     }
 }

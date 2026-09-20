@@ -8,8 +8,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 final class DemoGuiScreens {
     private static final GuiVector TITLE_POSITION = new GuiVector(0.0, 0.35, 0.0);
     private static final GuiVector BUTTON_POSITION = new GuiVector(0.0, -0.15, 0.0);
-    private static final float BUTTON_WIDTH = 0.8F;
-    private static final float BUTTON_HEIGHT = 0.3F;
 
     private DemoGuiScreens() {}
 
@@ -22,8 +20,6 @@ final class DemoGuiScreens {
                         "next",
                         buttonLabel("Next"),
                         BUTTON_POSITION,
-                        BUTTON_WIDTH,
-                        BUTTON_HEIGHT,
                         "second"));
         GuiScreen second = new GuiScreen(
                 "second",
@@ -33,8 +29,6 @@ final class DemoGuiScreens {
                         "back",
                         buttonLabel("Back"),
                         BUTTON_POSITION,
-                        BUTTON_WIDTH,
-                        BUTTON_HEIGHT,
                         "main"));
 
         return new GuiScreenSet(main.id(), List.of(main, second));

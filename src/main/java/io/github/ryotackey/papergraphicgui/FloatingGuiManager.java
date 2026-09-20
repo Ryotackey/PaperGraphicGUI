@@ -44,12 +44,13 @@ final class FloatingGuiManager {
             spawnedEntities.add(title);
 
             GuiButton initialButton = initialScreen.button();
+            GuiButtonHitbox initialHitbox = GuiButtonHitboxCalculator.calculate(initialButton.label());
             Location buttonLocation = toLocation(world, transform.toWorld(initialButton.position()));
             TextDisplay button = spawnButton(buttonLocation, initialScreen);
             spawnedEntities.add(button);
 
             Interaction interaction = spawnButtonInteraction(
-                    interactionLocation(world, transform, initialButton), initialButton);
+                    interactionLocation(world, transform, initialButton, initialHitbox), initialHitbox);
             spawnedEntities.add(interaction);
 
             for (Entity entity : spawnedEntities) {
@@ -141,11 +142,11 @@ final class FloatingGuiManager {
         });
     }
 
-    private Interaction spawnButtonInteraction(Location location, GuiButton button) {
+    private Interaction spawnButtonInteraction(Location location, GuiButtonHitbox hitbox) {
         return location.getWorld().spawn(location, Interaction.class, interaction -> {
             configureEntity(interaction);
-            interaction.setInteractionWidth(button.width());
-            interaction.setInteractionHeight(button.height());
+            interaction.setInteractionWidth(hitbox.width());
+            interaction.setInteractionHeight(hitbox.height());
             interaction.setResponsive(true);
         });
     }
@@ -153,21 +154,23 @@ final class FloatingGuiManager {
     private void renderScreen(FloatingGuiSession session, GuiScreen screen) {
         World world = session.anchor().getWorld();
         GuiButton button = screen.button();
+        GuiButtonHitbox hitbox = GuiButtonHitboxCalculator.calculate(button.label());
 
         session.title().text(screen.title());
         session.title().teleport(toLocation(world, session.transform().toWorld(screen.titlePosition())));
         session.button().text(button.label());
         session.button().teleport(toLocation(world, session.transform().toWorld(button.position())));
-        session.buttonInteraction().setInteractionWidth(button.width());
-        session.buttonInteraction().setInteractionHeight(button.height());
-        session.buttonInteraction().teleport(interactionLocation(world, session.transform(), button));
+        session.buttonInteraction().setInteractionWidth(hitbox.width());
+        session.buttonInteraction().setInteractionHeight(hitbox.height());
+        session.buttonInteraction()
+                .teleport(interactionLocation(world, session.transform(), button, hitbox));
     }
 
     private static Location interactionLocation(
-            World world, GuiTransform transform, GuiButton button) {
+            World world, GuiTransform transform, GuiButton button, GuiButtonHitbox hitbox) {
         GuiVector position = button.position();
         GuiVector interactionPosition =
-                new GuiVector(position.x(), position.y() - button.height() / 2.0, position.z());
+                new GuiVector(position.x(), position.y() - hitbox.height() / 2.0, position.z());
         return toLocation(world, transform.toWorld(interactionPosition));
     }
 
