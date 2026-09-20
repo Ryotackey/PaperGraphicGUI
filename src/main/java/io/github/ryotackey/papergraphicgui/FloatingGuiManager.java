@@ -23,6 +23,9 @@ import org.bukkit.util.Vector;
 final class FloatingGuiManager {
     private static final double GUI_DISTANCE = 2.5;
     private static final int CLICK_DEBOUNCE_TICKS = 4;
+    private static final GuiVector INPUT_CAPTURE_POSITION = new GuiVector(0.0, -1.0, 0.0);
+    private static final float INPUT_CAPTURE_WIDTH = 4.0F;
+    private static final float INPUT_CAPTURE_HEIGHT = 2.0F;
 
     private final Plugin plugin;
     private final GuiScreenSet defaultScreens;
@@ -52,7 +55,7 @@ final class FloatingGuiManager {
         GuiTransform transform = calculateTransform(owner);
         World world = owner.getWorld();
         Location anchor = toLocation(world, transform.origin());
-        List<Entity> spawnedEntities = new ArrayList<>(9);
+        List<Entity> spawnedEntities = new ArrayList<>(6);
         List<GridButtonDisplay> buttons = new ArrayList<>(4);
 
         try {
@@ -64,16 +67,16 @@ final class FloatingGuiManager {
                     DemoGuiScreens.gridTitle());
             spawnedEntities.add(title);
 
+            Interaction inputCapture = spawnInputCapture(
+                    toLocation(world, transform.toWorld(INPUT_CAPTURE_POSITION)));
+            spawnedEntities.add(inputCapture);
+
             for (GuiGridButton definition : DemoGuiScreens.createGridButtons()) {
                 TextDisplay display = spawnButton(
                         toDisplayLocation(world, transform.toWorld(definition.position()), transform),
                         definition.label());
                 spawnedEntities.add(display);
-                GuiButtonHitbox hitbox = GuiButtonHitboxCalculator.calculate(definition.label());
-                Interaction inputCapture = spawnInputCapture(
-                        toLocation(world, transform.toWorld(definition.position())), hitbox);
-                spawnedEntities.add(inputCapture);
-                buttons.add(new GridButtonDisplay(definition, display, inputCapture));
+                buttons.add(new GridButtonDisplay(definition, display));
             }
 
             for (Entity entity : spawnedEntities) {
@@ -83,7 +86,13 @@ final class FloatingGuiManager {
             freezePlayer(owner);
             this.gridSessions.put(
                     owner.getUniqueId(),
-                    new GridGuiSession(owner.getUniqueId(), anchor.clone(), transform, title, buttons));
+                    new GridGuiSession(
+                            owner.getUniqueId(),
+                            anchor.clone(),
+                            transform,
+                            title,
+                            buttons,
+                            inputCapture));
         } catch (RuntimeException exception) {
             this.gridSessions.remove(owner.getUniqueId());
             restorePlayer(owner.getUniqueId(), owner);
@@ -114,8 +123,7 @@ final class FloatingGuiManager {
             TextDisplay button = spawnButton(buttonLocation, initialScreen);
             spawnedEntities.add(button);
             Interaction inputCapture = spawnInputCapture(
-                    toLocation(world, transform.toWorld(initialButton.position())),
-                    GuiButtonHitboxCalculator.calculate(initialButton.label()));
+                    toLocation(world, transform.toWorld(INPUT_CAPTURE_POSITION)));
             spawnedEntities.add(inputCapture);
 
             for (Entity entity : spawnedEntities) {
@@ -230,14 +238,9 @@ final class FloatingGuiManager {
         }
 
         GridGuiSession gridSession = this.gridSessions.get(ownerUuid);
-        if (gridSession == null) {
-            return false;
-        }
-        boolean ownsCapture = gridSession.buttons().stream()
-                .anyMatch(button -> button.inputCapture()
-                        .getUniqueId()
-                        .equals(clickedEntity.getUniqueId()));
-        return ownsCapture && handleClick(player);
+        return gridSession != null
+                && gridSession.inputCapture().getUniqueId().equals(clickedEntity.getUniqueId())
+                && handleClick(player);
     }
 
     private boolean close(UUID ownerUuid) {
@@ -290,11 +293,11 @@ final class FloatingGuiManager {
         });
     }
 
-    private Interaction spawnInputCapture(Location location, GuiButtonHitbox hitbox) {
+    private Interaction spawnInputCapture(Location location) {
         return location.getWorld().spawn(location, Interaction.class, interaction -> {
             configureEntity(interaction);
-            interaction.setInteractionWidth(hitbox.width());
-            interaction.setInteractionHeight(hitbox.height());
+            interaction.setInteractionWidth(INPUT_CAPTURE_WIDTH);
+            interaction.setInteractionHeight(INPUT_CAPTURE_HEIGHT);
             interaction.setResponsive(true);
         });
     }
@@ -309,11 +312,6 @@ final class FloatingGuiManager {
         session.button().text(button.label());
         session.button().teleport(toDisplayLocation(
                 world, session.transform().toWorld(button.position()), session.transform()));
-        GuiButtonHitbox hitbox = GuiButtonHitboxCalculator.calculate(button.label());
-        session.inputCapture().setInteractionWidth(hitbox.width());
-        session.inputCapture().setInteractionHeight(hitbox.height());
-        session.inputCapture()
-                .teleport(toLocation(world, session.transform().toWorld(button.position())));
     }
 
     private boolean acquireClick(UUID ownerUuid) {
@@ -445,20 +443,18 @@ final class FloatingGuiManager {
             Location anchor,
             GuiTransform transform,
             TextDisplay title,
-            List<GridButtonDisplay> buttons) {
+            List<GridButtonDisplay> buttons,
+            Interaction inputCapture) {
         List<Entity> entities() {
-            List<Entity> entities = new ArrayList<>(this.buttons.size() + 1);
+            List<Entity> entities = new ArrayList<>(this.buttons.size() + 2);
             entities.add(this.title);
-            this.buttons.forEach(button -> {
-                entities.add(button.display());
-                entities.add(button.inputCapture());
-            });
+            this.buttons.forEach(button -> entities.add(button.display()));
+            entities.add(this.inputCapture);
             return entities;
         }
     }
 
-    private record GridButtonDisplay(
-            GuiGridButton definition, TextDisplay display, Interaction inputCapture) {}
+    private record GridButtonDisplay(GuiGridButton definition, TextDisplay display) {}
 
     private record PlayerFreezeState(
             boolean gravityEnabled,
