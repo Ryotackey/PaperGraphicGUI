@@ -1,0 +1,11 @@
+name: PaperGraphicGUI
+version: '0.1.0-SNAPSHOT'
+main: io.github.ryotackey.papergraphicgui.PaperGraphicGuiPlugin
+api-version: '26.2'
+description: A minimal world-space GUI built with Paper display entities
+
+commands:
+  gui:
+    description: Opens or closes the floating GUI
+    usage: /gui [close]
+
