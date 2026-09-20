@@ -50,7 +50,7 @@ final class FloatingGuiManager {
             spawnedEntities.add(button);
 
             Interaction interaction = spawnButtonInteraction(
-                    interactionLocation(world, transform, initialButton, initialHitbox), initialHitbox);
+                    interactionLocation(world, transform, initialButton), initialHitbox);
             spawnedEntities.add(interaction);
 
             for (Entity entity : spawnedEntities) {
@@ -163,15 +163,12 @@ final class FloatingGuiManager {
         session.buttonInteraction().setInteractionWidth(hitbox.width());
         session.buttonInteraction().setInteractionHeight(hitbox.height());
         session.buttonInteraction()
-                .teleport(interactionLocation(world, session.transform(), button, hitbox));
+                .teleport(interactionLocation(world, session.transform(), button));
     }
 
     private static Location interactionLocation(
-            World world, GuiTransform transform, GuiButton button, GuiButtonHitbox hitbox) {
-        GuiVector position = button.position();
-        GuiVector interactionPosition =
-                new GuiVector(position.x(), position.y() - hitbox.height() / 2.0, position.z());
-        return toLocation(world, transform.toWorld(interactionPosition));
+            World world, GuiTransform transform, GuiButton button) {
+        return toLocation(world, transform.toWorld(button.position()));
     }
 
     private static void configureEntity(Entity entity) {
