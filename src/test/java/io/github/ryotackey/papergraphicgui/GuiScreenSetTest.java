@@ -3,6 +3,7 @@ package io.github.ryotackey.papergraphicgui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import net.kyori.adventure.text.Component;
@@ -34,6 +35,27 @@ final class GuiScreenSetTest {
         assertEquals("back", second.button().id());
         assertEquals("main", second.button().targetScreenId());
         assertSame(main, returnedMain);
+    }
+
+    @Test
+    void sizeSampleScreensCycleThroughIncreasingButtonWidths() {
+        GuiScreenSet screens = DemoGuiScreens.createSizeSampleSet();
+
+        GuiScreen shortButton = screens.initialScreen();
+        GuiScreen mediumButton = screens.targetScreen(shortButton.button());
+        GuiScreen longButton = screens.targetScreen(mediumButton.button());
+        GuiScreen returnedShortButton = screens.targetScreen(longButton.button());
+
+        GuiButtonHitbox shortHitbox =
+                GuiButtonHitboxCalculator.calculate(shortButton.button().label());
+        GuiButtonHitbox mediumHitbox =
+                GuiButtonHitboxCalculator.calculate(mediumButton.button().label());
+        GuiButtonHitbox longHitbox =
+                GuiButtonHitboxCalculator.calculate(longButton.button().label());
+
+        assertTrue(shortHitbox.width() < mediumHitbox.width());
+        assertTrue(mediumHitbox.width() < longHitbox.width());
+        assertSame(shortButton, returnedShortButton);
     }
 
     @Test

@@ -38,8 +38,17 @@ final class GuiCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(Component.text("Usage: /gui [close]", NamedTextColor.RED));
+        if (args.length == 1 && args[0].equalsIgnoreCase("sizes")) {
+            this.guiManager.openSizeSamples(player);
+            return true;
+        }
+
+        if (args.length == 1 && args[0].equalsIgnoreCase("grid")) {
+            this.guiManager.openGridSample(player);
+            return true;
+        }
+
+        player.sendMessage(Component.text("Usage: /gui [close|sizes|grid]", NamedTextColor.RED));
         return true;
     }
 }
-

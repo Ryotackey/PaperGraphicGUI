@@ -11,6 +11,10 @@ record GuiVector(double x, double y, double z) {
         return new GuiVector(this.x + other.x, this.y + other.y, this.z + other.z);
     }
 
+    GuiVector subtract(GuiVector other) {
+        return new GuiVector(this.x - other.x, this.y - other.y, this.z - other.z);
+    }
+
     GuiVector multiply(double factor) {
         return new GuiVector(this.x * factor, this.y * factor, this.z * factor);
     }
@@ -20,6 +24,10 @@ record GuiVector(double x, double y, double z) {
                 this.y * other.z - this.z * other.y,
                 this.z * other.x - this.x * other.z,
                 this.x * other.y - this.y * other.x);
+    }
+
+    double dot(GuiVector other) {
+        return this.x * other.x + this.y * other.y + this.z * other.z;
     }
 
     double lengthSquared() {
