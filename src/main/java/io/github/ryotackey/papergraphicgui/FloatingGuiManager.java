@@ -146,6 +146,19 @@ final class FloatingGuiManager {
         return this.sessions.containsKey(ownerUuid) || this.gridSessions.containsKey(ownerUuid);
     }
 
+    Location lockedDestination(Player player, Location requestedDestination) {
+        PlayerFreezeState state = this.freezeStates.get(player.getUniqueId());
+        if (state == null) {
+            return null;
+        }
+
+        Location destination = requestedDestination.clone();
+        destination.setX(state.lockedPosition().x());
+        destination.setY(state.lockedPosition().y());
+        destination.setZ(state.lockedPosition().z());
+        return destination;
+    }
+
     boolean handleClick(Player player) {
         FloatingGuiSession session = this.sessions.get(player.getUniqueId());
         GridGuiSession gridSession = this.gridSessions.get(player.getUniqueId());
@@ -303,7 +316,12 @@ final class FloatingGuiManager {
 
     private void freezePlayer(Player player) {
         UUID ownerUuid = player.getUniqueId();
-        this.freezeStates.put(ownerUuid, new PlayerFreezeState(player.hasGravity()));
+        Location location = player.getLocation();
+        this.freezeStates.put(
+                ownerUuid,
+                new PlayerFreezeState(
+                        player.hasGravity(),
+                        new GuiVector(location.getX(), location.getY(), location.getZ())));
         player.setVelocity(new Vector());
         player.setFallDistance(0.0F);
         player.setGravity(false);
@@ -368,5 +386,5 @@ final class FloatingGuiManager {
 
     private record GridButtonDisplay(GuiGridButton definition, TextDisplay display) {}
 
-    private record PlayerFreezeState(boolean gravityEnabled) {}
+    private record PlayerFreezeState(boolean gravityEnabled, GuiVector lockedPosition) {}
 }

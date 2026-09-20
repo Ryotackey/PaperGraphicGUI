@@ -9,7 +9,7 @@ final class GuiRaycast {
     static boolean hitsButton(
             GuiVector rayOrigin,
             GuiVector rayDirection,
-            GuiVector buttonCenter,
+            GuiVector buttonDisplayOrigin,
             GuiVector planeRight,
             GuiVector planeUp,
             GuiVector planeNormal,
@@ -18,6 +18,8 @@ final class GuiRaycast {
             return false;
         }
 
+        GuiVector buttonCenter =
+                buttonDisplayOrigin.add(planeUp.multiply(hitbox.height() * 0.5));
         double denominator = rayDirection.dot(planeNormal);
         if (Math.abs(denominator) < PLANE_PARALLEL_EPSILON) {
             return false;
