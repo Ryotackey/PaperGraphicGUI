@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 final class GuiRaycastTest {
     private static final GuiVector EYE_POSITION = new GuiVector(0.0, 64.0, 0.0);
     private static final GuiVector BUTTON_CENTER = new GuiVector(0.0, 64.0, 2.5);
-    private static final GuiVector FALLBACK_RIGHT = new GuiVector(-1.0, 0.0, 0.0);
+    private static final GuiVector PLANE_RIGHT = new GuiVector(-1.0, 0.0, 0.0);
+    private static final GuiVector PLANE_UP = new GuiVector(0.0, 1.0, 0.0);
+    private static final GuiVector PLANE_NORMAL = new GuiVector(0.0, 0.0, 1.0);
     private static final GuiButtonHitbox HITBOX = new GuiButtonHitbox(1.0F, 0.25F);
 
     @Test
@@ -17,7 +19,9 @@ final class GuiRaycastTest {
                 EYE_POSITION,
                 new GuiVector(0.0, 0.0, 1.0),
                 BUTTON_CENTER,
-                FALLBACK_RIGHT,
+                PLANE_RIGHT,
+                PLANE_UP,
+                PLANE_NORMAL,
                 HITBOX));
     }
 
@@ -27,18 +31,22 @@ final class GuiRaycastTest {
                 EYE_POSITION,
                 new GuiVector(0.5, 0.0, 1.0),
                 BUTTON_CENTER,
-                FALLBACK_RIGHT,
+                PLANE_RIGHT,
+                PLANE_UP,
+                PLANE_NORMAL,
                 HITBOX));
     }
 
     @Test
-    void followsTheViewerWhenTheBillboardRotates() {
+    void acceptsAnAngledRayAgainstTheFixedPlane() {
         GuiVector viewerPosition = new GuiVector(2.5, 64.0, 0.0);
         assertTrue(GuiRaycast.hitsButton(
                 viewerPosition,
                 new GuiVector(-1.0, 0.0, 1.0),
                 BUTTON_CENTER,
-                FALLBACK_RIGHT,
+                PLANE_RIGHT,
+                PLANE_UP,
+                PLANE_NORMAL,
                 HITBOX));
     }
 
@@ -48,18 +56,22 @@ final class GuiRaycastTest {
                 EYE_POSITION,
                 new GuiVector(0.0, 0.0, -1.0),
                 BUTTON_CENTER,
-                FALLBACK_RIGHT,
+                PLANE_RIGHT,
+                PLANE_UP,
+                PLANE_NORMAL,
                 HITBOX));
     }
 
     @Test
-    void usesTheOriginalScreenRightWhenViewerIsDirectlyAbove() {
+    void rejectsRayParallelToTheFixedPlane() {
         GuiVector viewerPosition = new GuiVector(0.0, 66.5, 2.5);
-        assertTrue(GuiRaycast.hitsButton(
+        assertFalse(GuiRaycast.hitsButton(
                 viewerPosition,
                 new GuiVector(0.0, -1.0, 0.0),
                 BUTTON_CENTER,
-                FALLBACK_RIGHT,
+                PLANE_RIGHT,
+                PLANE_UP,
+                PLANE_NORMAL,
                 HITBOX));
     }
 }

@@ -5,11 +5,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.Vector;
 
 final class FloatingGuiListener implements Listener {
     private final FloatingGuiManager guiManager;
@@ -50,11 +54,37 @@ final class FloatingGuiListener implements Listener {
         this.guiManager.handleClick(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (event.hasChangedPosition()) {
-            this.guiManager.handleMovement(event.getPlayer(), event.getTo());
+        if (event instanceof PlayerTeleportEvent
+                || !event.hasChangedPosition()
+                || !this.guiManager.isOpen(event.getPlayer())) {
+            return;
         }
+
+        event.getTo().setX(event.getFrom().getX());
+        event.getTo().setY(event.getFrom().getY());
+        event.getTo().setZ(event.getFrom().getZ());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (this.guiManager.isOpen(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerVelocity(PlayerVelocityEvent event) {
+        if (this.guiManager.isOpen(event.getPlayer())) {
+            event.setVelocity(new Vector());
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        this.guiManager.close(event.getEntity());
     }
 
     @EventHandler
