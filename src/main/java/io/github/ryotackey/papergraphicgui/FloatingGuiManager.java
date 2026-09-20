@@ -5,9 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -21,16 +18,14 @@ import org.bukkit.plugin.Plugin;
 final class FloatingGuiManager {
     private static final double GUI_DISTANCE = 2.5;
     private static final double MAX_GUI_DISTANCE_SQUARED = 6.0 * 6.0;
-    private static final double TITLE_OFFSET_Y = 0.35;
-    private static final double BUTTON_OFFSET_Y = -0.15;
-    private static final float BUTTON_WIDTH = 1.2F;
-    private static final float BUTTON_HEIGHT = 0.45F;
 
     private final Plugin plugin;
+    private final GuiScreenFlow screenFlow;
     private final Map<UUID, FloatingGuiSession> sessions = new HashMap<>();
 
     FloatingGuiManager(Plugin plugin) {
         this.plugin = plugin;
+        this.screenFlow = DemoGuiScreens.createFlow();
     }
 
     void open(Player owner) {
@@ -42,20 +37,19 @@ final class FloatingGuiManager {
         List<Entity> spawnedEntities = new ArrayList<>(3);
 
         try {
-            GuiScreen initialScreen = GuiScreen.MAIN;
+            GuiScreen initialScreen = this.screenFlow.initialScreen();
             TextDisplay title = spawnTitle(
-                    toLocation(world, transform.toWorld(new GuiVector(0.0, TITLE_OFFSET_Y, 0.0))),
+                    toLocation(world, transform.toWorld(initialScreen.titlePosition())),
                     initialScreen);
             spawnedEntities.add(title);
 
-            Location buttonLocation =
-                    toLocation(world, transform.toWorld(new GuiVector(0.0, BUTTON_OFFSET_Y, 0.0)));
+            GuiButton initialButton = initialScreen.button();
+            Location buttonLocation = toLocation(world, transform.toWorld(initialButton.position()));
             TextDisplay button = spawnButton(buttonLocation, initialScreen);
             spawnedEntities.add(button);
 
-            Interaction interaction = spawnButtonInteraction(toLocation(
-                    world,
-                    transform.toWorld(new GuiVector(0.0, BUTTON_OFFSET_Y - BUTTON_HEIGHT / 2.0, 0.0))));
+            Interaction interaction = spawnButtonInteraction(
+                    interactionLocation(world, transform, initialButton), initialButton);
             spawnedEntities.add(interaction);
 
             for (Entity entity : spawnedEntities) {
@@ -65,7 +59,13 @@ final class FloatingGuiManager {
             this.sessions.put(
                     owner.getUniqueId(),
                     new FloatingGuiSession(
-                            owner.getUniqueId(), anchor.clone(), initialScreen, title, button, interaction));
+                            owner.getUniqueId(),
+                            anchor.clone(),
+                            transform,
+                            initialScreen,
+                            title,
+                            button,
+                            interaction));
         } catch (RuntimeException exception) {
             spawnedEntities.forEach(Entity::remove);
             throw exception;
@@ -105,9 +105,9 @@ final class FloatingGuiManager {
             return false;
         }
 
-        GuiScreen nextScreen = session.screen().next();
-        session.title().text(titleText(nextScreen));
-        session.button().text(buttonText(nextScreen));
+        GuiScreen nextScreen =
+                this.screenFlow.transition(session.screen(), session.screen().button().id());
+        renderScreen(session, nextScreen);
         this.sessions.put(player.getUniqueId(), session.withScreen(nextScreen));
         return true;
     }
@@ -126,7 +126,7 @@ final class FloatingGuiManager {
         return location.getWorld().spawn(location, TextDisplay.class, display -> {
             configureEntity(display);
             configureTextDisplay(display);
-            display.text(titleText(screen));
+            display.text(screen.title());
             display.setDefaultBackground(false);
             display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         });
@@ -136,19 +136,40 @@ final class FloatingGuiManager {
         return location.getWorld().spawn(location, TextDisplay.class, display -> {
             configureEntity(display);
             configureTextDisplay(display);
-            display.text(buttonText(screen));
+            display.text(screen.button().label());
             display.setDefaultBackground(false);
             display.setBackgroundColor(Color.fromARGB(200, 35, 35, 35));
         });
     }
 
-    private Interaction spawnButtonInteraction(Location location) {
+    private Interaction spawnButtonInteraction(Location location, GuiButton button) {
         return location.getWorld().spawn(location, Interaction.class, interaction -> {
             configureEntity(interaction);
-            interaction.setInteractionWidth(BUTTON_WIDTH);
-            interaction.setInteractionHeight(BUTTON_HEIGHT);
+            interaction.setInteractionWidth(button.width());
+            interaction.setInteractionHeight(button.height());
             interaction.setResponsive(true);
         });
+    }
+
+    private void renderScreen(FloatingGuiSession session, GuiScreen screen) {
+        World world = session.anchor().getWorld();
+        GuiButton button = screen.button();
+
+        session.title().text(screen.title());
+        session.title().teleport(toLocation(world, session.transform().toWorld(screen.titlePosition())));
+        session.button().text(button.label());
+        session.button().teleport(toLocation(world, session.transform().toWorld(button.position())));
+        session.buttonInteraction().setInteractionWidth(button.width());
+        session.buttonInteraction().setInteractionHeight(button.height());
+        session.buttonInteraction().teleport(interactionLocation(world, session.transform(), button));
+    }
+
+    private static Location interactionLocation(
+            World world, GuiTransform transform, GuiButton button) {
+        GuiVector position = button.position();
+        GuiVector interactionPosition =
+                new GuiVector(position.x(), position.y() - button.height() / 2.0, position.z());
+        return toLocation(world, transform.toWorld(interactionPosition));
     }
 
     private static void configureEntity(Entity entity) {
@@ -161,14 +182,6 @@ final class FloatingGuiManager {
         display.setAlignment(TextDisplay.TextAlignment.CENTER);
         display.setShadowed(true);
         display.setSeeThrough(false);
-    }
-
-    private static Component titleText(GuiScreen screen) {
-        return Component.text(screen.title(), NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
-    }
-
-    private static Component buttonText(GuiScreen screen) {
-        return Component.text("  " + screen.buttonLabel() + "  ", NamedTextColor.WHITE);
     }
 
     private static GuiTransform calculateTransform(Player player) {
@@ -188,6 +201,7 @@ final class FloatingGuiManager {
     private record FloatingGuiSession(
             UUID ownerUuid,
             Location anchor,
+            GuiTransform transform,
             GuiScreen screen,
             TextDisplay title,
             TextDisplay button,
@@ -196,6 +210,7 @@ final class FloatingGuiManager {
             return new FloatingGuiSession(
                     this.ownerUuid,
                     this.anchor,
+                    this.transform,
                     newScreen,
                     this.title,
                     this.button,
@@ -204,31 +219,6 @@ final class FloatingGuiManager {
 
         List<Entity> entities() {
             return List.of(this.title, this.button, this.buttonInteraction);
-        }
-    }
-
-    private enum GuiScreen {
-        MAIN("Main Screen", "Next"),
-        SECOND("Second Screen", "Back");
-
-        private final String title;
-        private final String buttonLabel;
-
-        GuiScreen(String title, String buttonLabel) {
-            this.title = title;
-            this.buttonLabel = buttonLabel;
-        }
-
-        String title() {
-            return this.title;
-        }
-
-        String buttonLabel() {
-            return this.buttonLabel;
-        }
-
-        GuiScreen next() {
-            return this == MAIN ? SECOND : MAIN;
         }
     }
 }
