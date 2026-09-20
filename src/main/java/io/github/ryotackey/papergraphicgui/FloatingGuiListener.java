@@ -30,7 +30,9 @@ final class FloatingGuiListener implements Listener {
         }
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR
-                && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+                && event.getAction() != Action.RIGHT_CLICK_BLOCK
+                && event.getAction() != Action.LEFT_CLICK_AIR
+                && event.getAction() != Action.LEFT_CLICK_BLOCK) {
             return;
         }
 
@@ -43,7 +45,7 @@ final class FloatingGuiListener implements Listener {
             return;
         }
 
-        this.guiManager.handleClick(event.getPlayer());
+        this.guiManager.handleInteraction(event.getPlayer(), event.getRightClicked());
     }
 
     @EventHandler
