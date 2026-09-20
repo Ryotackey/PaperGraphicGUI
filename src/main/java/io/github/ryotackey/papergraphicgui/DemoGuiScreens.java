@@ -9,8 +9,8 @@ import net.kyori.adventure.text.format.TextDecoration;
 final class DemoGuiScreens {
     private static final GuiVector TITLE_POSITION = new GuiVector(0.0, 0.35, 0.0);
     private static final GuiVector BUTTON_POSITION = new GuiVector(0.0, -0.15, 0.0);
-    private static final float BUTTON_WIDTH = 1.2F;
-    private static final float BUTTON_HEIGHT = 0.45F;
+    private static final float BUTTON_WIDTH = 0.8F;
+    private static final float BUTTON_HEIGHT = 0.3F;
 
     private DemoGuiScreens() {}
 

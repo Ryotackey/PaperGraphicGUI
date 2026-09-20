@@ -27,8 +27,8 @@ final class GuiScreenFlowTest {
         assertEquals("next", main.button().id());
         assertEquals(Component.text("  Next  ", NamedTextColor.WHITE), main.button().label());
         assertEquals(new GuiVector(0.0, -0.15, 0.0), main.button().position());
-        assertEquals(1.2F, main.button().width());
-        assertEquals(0.45F, main.button().height());
+        assertEquals(0.8F, main.button().width());
+        assertEquals(0.3F, main.button().height());
         assertEquals("second", second.id());
         assertEquals(
                 Component.text("Second Screen", NamedTextColor.GOLD).decorate(TextDecoration.BOLD),
