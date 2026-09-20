@@ -20,6 +20,7 @@ import org.bukkit.util.Vector;
 
 final class FloatingGuiManager {
     private static final double GUI_DISTANCE = 2.5;
+    private static final double MAX_GUI_DISTANCE_SQUARED = 6.0 * 6.0;
     private static final double TITLE_OFFSET_Y = 0.35;
     private static final double BUTTON_OFFSET_Y = -0.15;
     private static final float BUTTON_WIDTH = 1.2F;
@@ -57,7 +58,8 @@ final class FloatingGuiManager {
 
             this.sessions.put(
                     owner.getUniqueId(),
-                    new FloatingGuiSession(owner.getUniqueId(), initialScreen, title, button, interaction));
+                    new FloatingGuiSession(
+                            owner.getUniqueId(), anchor.clone(), initialScreen, title, button, interaction));
         } catch (RuntimeException exception) {
             spawnedEntities.forEach(Entity::remove);
             throw exception;
@@ -70,6 +72,19 @@ final class FloatingGuiManager {
 
     void closeAll() {
         List.copyOf(this.sessions.keySet()).forEach(this::close);
+    }
+
+    void handleMovement(Player player, Location destination) {
+        FloatingGuiSession session = this.sessions.get(player.getUniqueId());
+        if (session == null) {
+            return;
+        }
+
+        Location anchor = session.anchor();
+        if (!anchor.getWorld().equals(destination.getWorld())
+                || anchor.distanceSquared(destination) > MAX_GUI_DISTANCE_SQUARED) {
+            close(player.getUniqueId());
+        }
     }
 
     boolean handleInteraction(Player player, Entity clickedEntity) {
@@ -166,13 +181,19 @@ final class FloatingGuiManager {
 
     private record FloatingGuiSession(
             UUID ownerUuid,
+            Location anchor,
             GuiScreen screen,
             TextDisplay title,
             TextDisplay button,
             Interaction buttonInteraction) {
         FloatingGuiSession withScreen(GuiScreen newScreen) {
             return new FloatingGuiSession(
-                    this.ownerUuid, newScreen, this.title, this.button, this.buttonInteraction);
+                    this.ownerUuid,
+                    this.anchor,
+                    newScreen,
+                    this.title,
+                    this.button,
+                    this.buttonInteraction);
         }
 
         List<Entity> entities() {
