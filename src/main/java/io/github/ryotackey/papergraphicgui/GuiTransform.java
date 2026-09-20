@@ -61,8 +61,8 @@ final class GuiTransform {
         return this.forward;
     }
 
-    double yawDegrees() {
-        return this.yawDegrees;
+    double displayYawDegrees() {
+        return this.yawDegrees + 180.0;
     }
 
     GuiVector toWorld(GuiVector localPosition) {

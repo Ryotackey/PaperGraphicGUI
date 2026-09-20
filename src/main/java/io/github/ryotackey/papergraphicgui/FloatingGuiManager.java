@@ -296,7 +296,7 @@ final class FloatingGuiManager {
     private static Location toDisplayLocation(
             World world, GuiVector position, GuiTransform transform) {
         Location location = toLocation(world, position);
-        location.setYaw((float) transform.yawDegrees());
+        location.setYaw((float) transform.displayYawDegrees());
         location.setPitch(0.0F);
         return location;
     }

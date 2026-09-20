@@ -1,6 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
 import io.papermc.paper.event.player.PlayerArmSwingEvent;
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -62,9 +63,11 @@ final class FloatingGuiListener implements Listener {
             return;
         }
 
-        event.getTo().setX(event.getFrom().getX());
-        event.getTo().setY(event.getFrom().getY());
-        event.getTo().setZ(event.getFrom().getZ());
+        Location lockedDestination = event.getTo().clone();
+        lockedDestination.setX(event.getFrom().getX());
+        lockedDestination.setY(event.getFrom().getY());
+        lockedDestination.setZ(event.getFrom().getZ());
+        event.setTo(lockedDestination);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
