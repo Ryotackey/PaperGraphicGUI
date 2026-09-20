@@ -55,7 +55,7 @@ final class FloatingGuiListener implements Listener {
         this.guiManager.handleClick(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerMove(PlayerMoveEvent event) {
         if (event instanceof PlayerTeleportEvent
                 || !event.hasChangedPosition()) {
@@ -65,7 +65,8 @@ final class FloatingGuiListener implements Listener {
         Location lockedDestination =
                 this.guiManager.lockedDestination(event.getPlayer(), event.getTo());
         if (lockedDestination != null) {
-            event.setTo(lockedDestination);
+            event.setFrom(lockedDestination);
+            event.setCancelled(true);
         }
     }
 

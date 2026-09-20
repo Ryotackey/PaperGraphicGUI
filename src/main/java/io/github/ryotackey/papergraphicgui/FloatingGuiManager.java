@@ -321,10 +321,14 @@ final class FloatingGuiManager {
                 ownerUuid,
                 new PlayerFreezeState(
                         player.hasGravity(),
+                        player.getWalkSpeed(),
+                        player.getFlySpeed(),
                         new GuiVector(location.getX(), location.getY(), location.getZ())));
         player.setVelocity(new Vector());
         player.setFallDistance(0.0F);
         player.setGravity(false);
+        player.setWalkSpeed(0.0F);
+        player.setFlySpeed(0.0F);
     }
 
     private void restorePlayer(UUID ownerUuid, Player player) {
@@ -334,6 +338,8 @@ final class FloatingGuiManager {
         }
 
         player.setGravity(state.gravityEnabled());
+        player.setWalkSpeed(state.walkSpeed());
+        player.setFlySpeed(state.flySpeed());
         player.setVelocity(new Vector());
         player.setFallDistance(0.0F);
     }
@@ -386,5 +392,9 @@ final class FloatingGuiManager {
 
     private record GridButtonDisplay(GuiGridButton definition, TextDisplay display) {}
 
-    private record PlayerFreezeState(boolean gravityEnabled, GuiVector lockedPosition) {}
+    private record PlayerFreezeState(
+            boolean gravityEnabled,
+            float walkSpeed,
+            float flySpeed,
+            GuiVector lockedPosition) {}
 }
