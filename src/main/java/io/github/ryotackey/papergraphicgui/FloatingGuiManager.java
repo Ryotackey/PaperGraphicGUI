@@ -1,5 +1,9 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiComponent;
+import io.github.ryotackey.papergraphicgui.component.GuiIcon;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,12 +17,17 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 final class FloatingGuiManager {
     private static final double GUI_DISTANCE = 2.5;
@@ -26,6 +35,9 @@ final class FloatingGuiManager {
     private static final GuiVector INPUT_CAPTURE_POSITION = new GuiVector(0.0, -1.0, 0.0);
     private static final float INPUT_CAPTURE_WIDTH = 4.0F;
     private static final float INPUT_CAPTURE_HEIGHT = 2.0F;
+    private static final float RECTANGLE_DEPTH = 0.035F;
+    private static final double LABEL_VERTICAL_OFFSET = 0.13;
+    private static final double LABEL_FORWARD_OFFSET = -0.025;
 
     private final Plugin plugin;
     private final Map<UUID, FloatingGuiSession> sessions = new HashMap<>();
@@ -43,7 +55,7 @@ final class FloatingGuiManager {
         World world = owner.getWorld();
         Location anchor = toLocation(world, transform.origin());
         GuiScreen initialScreen = screens.initialScreen();
-        List<Entity> spawnedEntities = new ArrayList<>(initialScreen.buttons().size() + 2);
+        List<Entity> spawnedEntities = new ArrayList<>();
 
         try {
             TextDisplay title = spawnTitle(
@@ -52,9 +64,9 @@ final class FloatingGuiManager {
                     initialScreen);
             spawnedEntities.add(title);
 
-            List<GuiButtonDisplay> buttons =
-                    spawnButtons(world, transform, initialScreen.buttons());
-            buttons.forEach(button -> spawnedEntities.add(button.display()));
+            List<RenderedComponent> components =
+                    spawnComponents(world, transform, initialScreen.components());
+            components.forEach(component -> spawnedEntities.addAll(component.entities()));
             Interaction inputCapture = spawnInputCapture(
                     toLocation(world, transform.toWorld(INPUT_CAPTURE_POSITION)));
             spawnedEntities.add(inputCapture);
@@ -73,7 +85,7 @@ final class FloatingGuiManager {
                             screens,
                             initialScreen,
                             title,
-                            buttons,
+                            components,
                             inputCapture));
         } catch (RuntimeException exception) {
             this.sessions.remove(owner.getUniqueId());
@@ -118,12 +130,16 @@ final class FloatingGuiManager {
 
         Location eyeLocation = player.getEyeLocation();
         org.bukkit.util.Vector viewDirection = eyeLocation.getDirection();
-        for (GuiButtonDisplay button : session.buttons()) {
-            GuiButton definition = button.definition();
+        for (RenderedComponent renderedComponent : session.components()) {
+            if (!(renderedComponent.definition() instanceof GuiRectangle definition)
+                    || !definition.clickable()) {
+                continue;
+            }
             if (!hitsButton(
                     session.transform(),
                     definition.position(),
-                    definition.label(),
+                    definition.width(),
+                    definition.height(),
                     eyeLocation,
                     viewDirection)) {
                 continue;
@@ -132,13 +148,13 @@ final class FloatingGuiManager {
                 return false;
             }
 
-            switch (definition.action()) {
-                case GuiButtonAction.Navigate ignored -> {
+            switch (definition.action().orElseThrow()) {
+                case GuiAction.Navigate ignored -> {
                     GuiScreen nextScreen = session.screens().targetScreen(definition);
                     this.sessions.put(
                             player.getUniqueId(), renderScreen(player, session, nextScreen));
                 }
-                case GuiButtonAction.SendMessage message ->
+                case GuiAction.SendMessage message ->
                     player.sendMessage(message.message());
             }
             return true;
@@ -185,30 +201,84 @@ final class FloatingGuiManager {
         });
     }
 
-    private TextDisplay spawnButton(Location location, Component label) {
+    private TextDisplay spawnButtonLabel(Location location, Component label) {
         return location.getWorld().spawn(location, TextDisplay.class, display -> {
             configureEntity(display);
             configureTextDisplay(display);
             display.text(label);
             display.setDefaultBackground(false);
-            display.setBackgroundColor(Color.fromARGB(200, 35, 35, 35));
+            display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         });
     }
 
-    private List<GuiButtonDisplay> spawnButtons(
-            World world, GuiTransform transform, List<GuiButton> definitions) {
-        List<GuiButtonDisplay> buttons = new ArrayList<>(definitions.size());
+    private BlockDisplay spawnRectangle(
+            Location location, float width, float height, org.bukkit.Material blockMaterial) {
+        if (!blockMaterial.isBlock()) {
+            throw new IllegalArgumentException(
+                    "GUI rectangle blockMaterial must be a block: " + blockMaterial);
+        }
+        return location.getWorld().spawn(location, BlockDisplay.class, display -> {
+            configureEntity(display);
+            display.setBillboard(Display.Billboard.FIXED);
+            display.setBlock(blockMaterial.createBlockData());
+            display.setTransformation(new Transformation(
+                    new Vector3f(-width * 0.5F, -height * 0.5F, -RECTANGLE_DEPTH * 0.5F),
+                    new Quaternionf(),
+                    new Vector3f(width, height, RECTANGLE_DEPTH),
+                    new Quaternionf()));
+        });
+    }
+
+    private ItemDisplay spawnIcon(Location location, GuiIcon icon) {
+        return location.getWorld().spawn(location, ItemDisplay.class, display -> {
+            configureEntity(display);
+            display.setBillboard(Display.Billboard.FIXED);
+            display.setItemStack(icon.item());
+            display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
+            display.setTransformation(new Transformation(
+                    new Vector3f(),
+                    new Quaternionf(),
+                    new Vector3f(icon.width(), icon.height(), Math.min(icon.width(), icon.height())),
+                    new Quaternionf()));
+        });
+    }
+
+    private List<RenderedComponent> spawnComponents(
+            World world, GuiTransform transform, List<GuiComponent> definitions) {
+        List<RenderedComponent> components = new ArrayList<>(definitions.size());
         try {
-            for (GuiButton definition : definitions) {
-                TextDisplay display = spawnButton(
-                        toDisplayLocation(
-                                world, transform.toWorld(definition.position()), transform),
-                        definition.label());
-                buttons.add(new GuiButtonDisplay(definition, display));
+            for (GuiComponent definition : definitions) {
+                Location location = toDisplayLocation(
+                        world, transform.toWorld(definition.position()), transform);
+                List<Entity> entities = switch (definition) {
+                    case GuiRectangle rectangle -> {
+                        BlockDisplay background = spawnRectangle(
+                                location,
+                                rectangle.width(),
+                                rectangle.height(),
+                                rectangle.blockMaterial());
+                        if (rectangle.label().isEmpty()) {
+                            yield List.of(background);
+                        }
+                        try {
+                            GuiVector labelPosition = rectangle.position().add(new GuiVector(
+                                    0.0, -LABEL_VERTICAL_OFFSET, LABEL_FORWARD_OFFSET));
+                            TextDisplay label = spawnButtonLabel(
+                                    toDisplayLocation(world, transform.toWorld(labelPosition), transform),
+                                    rectangle.label().orElseThrow());
+                            yield List.of(background, label);
+                        } catch (RuntimeException exception) {
+                            background.remove();
+                            throw exception;
+                        }
+                    }
+                    case GuiIcon icon -> List.of(spawnIcon(location, icon));
+                };
+                components.add(new RenderedComponent(definition, entities));
             }
-            return buttons;
+            return components;
         } catch (RuntimeException exception) {
-            buttons.forEach(button -> button.display().remove());
+            components.forEach(component -> component.entities().forEach(Entity::remove));
             throw exception;
         }
     }
@@ -225,17 +295,18 @@ final class FloatingGuiManager {
     private FloatingGuiSession renderScreen(
             Player owner, FloatingGuiSession session, GuiScreen screen) {
         World world = session.anchor().getWorld();
-        List<GuiButtonDisplay> buttons =
-                spawnButtons(world, session.transform(), screen.buttons());
+        List<RenderedComponent> components =
+                spawnComponents(world, session.transform(), screen.components());
         try {
-            buttons.forEach(button -> owner.showEntity(this.plugin, button.display()));
+            components.forEach(component ->
+                    component.entities().forEach(entity -> owner.showEntity(this.plugin, entity)));
             session.title().text(screen.title());
             session.title().teleport(toDisplayLocation(
                     world, session.transform().toWorld(screen.titlePosition()), session.transform()));
-            session.buttons().forEach(button -> button.display().remove());
-            return session.withScreen(screen, buttons);
+            session.components().forEach(component -> component.entities().forEach(Entity::remove));
+            return session.withScreen(screen, components);
         } catch (RuntimeException exception) {
-            buttons.forEach(button -> button.display().remove());
+            components.forEach(component -> component.entities().forEach(Entity::remove));
             throw exception;
         }
     }
@@ -253,7 +324,8 @@ final class FloatingGuiManager {
     private static boolean hitsButton(
             GuiTransform transform,
             GuiVector localPosition,
-            Component label,
+            float width,
+            float height,
             Location eyeLocation,
             org.bukkit.util.Vector viewDirection) {
         return GuiRaycast.hitsButton(
@@ -263,7 +335,8 @@ final class FloatingGuiManager {
                 transform.right(),
                 transform.up(),
                 transform.forward(),
-                GuiButtonHitboxCalculator.calculate(label));
+                width,
+                height);
     }
 
     private static void configureEntity(Entity entity) {
@@ -345,10 +418,10 @@ final class FloatingGuiManager {
             GuiScreenSet screens,
             GuiScreen screen,
             TextDisplay title,
-            List<GuiButtonDisplay> buttons,
+            List<RenderedComponent> components,
             Interaction inputCapture) {
         FloatingGuiSession withScreen(
-                GuiScreen newScreen, List<GuiButtonDisplay> newButtons) {
+                GuiScreen newScreen, List<RenderedComponent> newComponents) {
             return new FloatingGuiSession(
                     this.ownerUuid,
                     this.anchor,
@@ -356,20 +429,24 @@ final class FloatingGuiManager {
                     this.screens,
                     newScreen,
                     this.title,
-                    newButtons,
+                    newComponents,
                     this.inputCapture);
         }
 
         List<Entity> entities() {
-            List<Entity> entities = new ArrayList<>(this.buttons.size() + 2);
+            List<Entity> entities = new ArrayList<>();
             entities.add(this.title);
-            this.buttons.forEach(button -> entities.add(button.display()));
+            this.components.forEach(component -> entities.addAll(component.entities()));
             entities.add(this.inputCapture);
             return entities;
         }
     }
 
-    private record GuiButtonDisplay(GuiButton definition, TextDisplay display) {}
+    private record RenderedComponent(GuiComponent definition, List<Entity> entities) {
+        RenderedComponent {
+            entities = List.copyOf(entities);
+        }
+    }
 
     private record PlayerFreezeState(
             boolean gravityEnabled,

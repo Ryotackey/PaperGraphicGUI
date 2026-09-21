@@ -1,5 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,13 +17,13 @@ final class GuiMultipleButtonScreenTest {
     @Test
     void definesGridAsARegularScreenWithFourButtons() {
         GuiScreen screen = DemoGuiScreens.createGridSet().initialScreen();
-        List<GuiButton> buttons = screen.buttons();
+        List<GuiRectangle> buttons = buttons(screen);
 
         assertEquals("grid", screen.id());
         assertEquals(4, buttons.size());
         assertEquals(
                 Set.of("top-left", "top-right", "bottom-left", "bottom-right"),
-                buttons.stream().map(GuiButton::id).collect(Collectors.toSet()));
+                buttons.stream().map(GuiRectangle::id).collect(Collectors.toSet()));
         assertTrue(buttons.stream().anyMatch(button -> button.position().x() < 0.0
                 && button.position().y() > 0.0));
         assertTrue(buttons.stream().anyMatch(button -> button.position().x() > 0.0
@@ -34,13 +36,14 @@ final class GuiMultipleButtonScreenTest {
 
     @Test
     void givesEachGridButtonASeparateMessageAction() {
-        List<GuiButton> buttons = DemoGuiScreens.createGridSet().initialScreen().buttons();
+        List<GuiRectangle> buttons = buttons(DemoGuiScreens.createGridSet().initialScreen());
 
         assertEquals(
                 4,
                 buttons.stream()
                         .map(button -> assertInstanceOf(
-                                        GuiButtonAction.SendMessage.class, button.action())
+                                        GuiAction.SendMessage.class,
+                                        button.action().orElseThrow())
                                 .message())
                         .collect(Collectors.toSet())
                         .size());
@@ -48,8 +51,8 @@ final class GuiMultipleButtonScreenTest {
 
     @Test
     void rejectsDuplicateButtonIdsWithinOneScreen() {
-        GuiButton first = button("duplicate");
-        GuiButton duplicate = button("duplicate");
+        GuiRectangle first = button("duplicate");
+        GuiRectangle duplicate = button("duplicate");
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -60,11 +63,22 @@ final class GuiMultipleButtonScreenTest {
                         List.of(first, duplicate)));
     }
 
-    private static GuiButton button(String id) {
-        return new GuiButton(
+    private static GuiRectangle button(String id) {
+        return new GuiRectangle(
                 id,
-                Component.text("Button"),
                 new GuiVector(0.0, 0.0, 0.0),
-                new GuiButtonAction.SendMessage(Component.text("Clicked")));
+                1.0F,
+                0.4F,
+                org.bukkit.Material.BLACK_CONCRETE,
+                Component.text("Button"),
+                new GuiAction.SendMessage(Component.text("Clicked")));
+    }
+
+    private static List<GuiRectangle> buttons(GuiScreen screen) {
+        return screen.components().stream()
+                .filter(GuiRectangle.class::isInstance)
+                .map(GuiRectangle.class::cast)
+                .filter(GuiRectangle::clickable)
+                .toList();
     }
 }

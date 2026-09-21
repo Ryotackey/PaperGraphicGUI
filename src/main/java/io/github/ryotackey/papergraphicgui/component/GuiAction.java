@@ -1,10 +1,10 @@
-package io.github.ryotackey.papergraphicgui;
+package io.github.ryotackey.papergraphicgui.component;
 
 import java.util.Objects;
 import net.kyori.adventure.text.Component;
 
-sealed interface GuiButtonAction {
-    record Navigate(String targetScreenId) implements GuiButtonAction {
+public sealed interface GuiAction {
+    record Navigate(String targetScreenId) implements GuiAction {
         public Navigate {
             if (targetScreenId == null || targetScreenId.isBlank()) {
                 throw new IllegalArgumentException("GUI target screen ID must not be blank");
@@ -12,7 +12,7 @@ sealed interface GuiButtonAction {
         }
     }
 
-    record SendMessage(Component message) implements GuiButtonAction {
+    record SendMessage(Component message) implements GuiAction {
         public SendMessage {
             Objects.requireNonNull(message, "message");
         }

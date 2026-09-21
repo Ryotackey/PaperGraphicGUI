@@ -9,32 +9,31 @@ final class GuiRaycast {
     static boolean hitsButton(
             GuiVector rayOrigin,
             GuiVector rayDirection,
-            GuiVector buttonDisplayOrigin,
+            GuiVector componentCenter,
             GuiVector planeRight,
             GuiVector planeUp,
             GuiVector planeNormal,
-            GuiButtonHitbox hitbox) {
+            float width,
+            float height) {
         if (rayDirection.lengthSquared() < DIRECTION_EPSILON_SQUARED) {
             return false;
         }
 
-        GuiVector buttonCenter =
-                buttonDisplayOrigin.add(planeUp.multiply(hitbox.height() * 0.5));
         double denominator = rayDirection.dot(planeNormal);
         if (Math.abs(denominator) < PLANE_PARALLEL_EPSILON) {
             return false;
         }
 
-        double distance = buttonCenter.subtract(rayOrigin).dot(planeNormal) / denominator;
+        double distance = componentCenter.subtract(rayOrigin).dot(planeNormal) / denominator;
         if (distance < 0.0) {
             return false;
         }
 
         GuiVector hitPoint = rayOrigin.add(rayDirection.multiply(distance));
-        GuiVector localHit = hitPoint.subtract(buttonCenter);
+        GuiVector localHit = hitPoint.subtract(componentCenter);
         double localX = localHit.dot(planeRight);
         double localY = localHit.dot(planeUp);
-        return Math.abs(localX) <= hitbox.width() * 0.5
-                && Math.abs(localY) <= hitbox.height() * 0.5;
+        return Math.abs(localX) <= width * 0.5
+                && Math.abs(localY) <= height * 0.5;
     }
 }

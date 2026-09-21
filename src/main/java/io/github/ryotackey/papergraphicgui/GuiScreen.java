@@ -1,25 +1,26 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiComponent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import net.kyori.adventure.text.Component;
 
-record GuiScreen(String id, Component title, GuiVector titlePosition, List<GuiButton> buttons) {
+record GuiScreen(String id, Component title, GuiVector titlePosition, List<GuiComponent> components) {
     GuiScreen {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("GUI screen ID must not be blank");
         }
         Objects.requireNonNull(title, "title");
         Objects.requireNonNull(titlePosition, "titlePosition");
-        Objects.requireNonNull(buttons, "buttons");
-        buttons = List.copyOf(buttons);
+        Objects.requireNonNull(components, "components");
+        components = List.copyOf(components);
 
-        Set<String> buttonIds = new HashSet<>();
-        for (GuiButton button : buttons) {
-            if (!buttonIds.add(button.id())) {
-                throw new IllegalArgumentException("Duplicate GUI button ID: " + button.id());
+        Set<String> componentIds = new HashSet<>();
+        for (GuiComponent component : components) {
+            if (!componentIds.add(component.id())) {
+                throw new IllegalArgumentException("Duplicate GUI component ID: " + component.id());
             }
         }
     }

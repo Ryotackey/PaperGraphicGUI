@@ -1,5 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -18,9 +20,9 @@ final class GuiScreenSetTest {
         GuiScreenSet screens = DemoGuiScreens.createSet();
 
         GuiScreen main = screens.initialScreen();
-        GuiButton next = onlyButton(main);
+        GuiRectangle next = onlyButton(main);
         GuiScreen second = screens.targetScreen(next);
-        GuiButton back = onlyButton(second);
+        GuiRectangle back = onlyButton(second);
         GuiScreen returnedMain = screens.targetScreen(back);
 
         assertEquals("main", main.id());
@@ -30,8 +32,11 @@ final class GuiScreenSetTest {
         assertEquals("next", next.id());
         assertEquals(
                 "second",
-                assertInstanceOf(GuiButtonAction.Navigate.class, next.action()).targetScreenId());
-        assertEquals(Component.text("  Next  ", NamedTextColor.WHITE), next.label());
+                assertInstanceOf(GuiAction.Navigate.class, next.action().orElseThrow())
+                        .targetScreenId());
+        assertEquals(
+                Component.text("  Next  ", NamedTextColor.WHITE),
+                next.label().orElseThrow());
         assertEquals(new GuiVector(0.0, -0.15, 0.0), next.position());
         assertEquals("second", second.id());
         assertEquals(
@@ -40,7 +45,8 @@ final class GuiScreenSetTest {
         assertEquals("back", back.id());
         assertEquals(
                 "main",
-                assertInstanceOf(GuiButtonAction.Navigate.class, back.action()).targetScreenId());
+                assertInstanceOf(GuiAction.Navigate.class, back.action().orElseThrow())
+                        .targetScreenId());
         assertSame(main, returnedMain);
     }
 
@@ -53,15 +59,8 @@ final class GuiScreenSetTest {
         GuiScreen longButton = screens.targetScreen(onlyButton(mediumButton));
         GuiScreen returnedShortButton = screens.targetScreen(onlyButton(longButton));
 
-        GuiButtonHitbox shortHitbox =
-                GuiButtonHitboxCalculator.calculate(onlyButton(shortButton).label());
-        GuiButtonHitbox mediumHitbox =
-                GuiButtonHitboxCalculator.calculate(onlyButton(mediumButton).label());
-        GuiButtonHitbox longHitbox =
-                GuiButtonHitboxCalculator.calculate(onlyButton(longButton).label());
-
-        assertTrue(shortHitbox.width() < mediumHitbox.width());
-        assertTrue(mediumHitbox.width() < longHitbox.width());
+        assertTrue(onlyButton(shortButton).width() < onlyButton(mediumButton).width());
+        assertTrue(onlyButton(mediumButton).width() < onlyButton(longButton).width());
         assertSame(shortButton, returnedShortButton);
     }
 
@@ -89,15 +88,22 @@ final class GuiScreenSetTest {
                 screenId,
                 Component.text("Title"),
                 new GuiVector(0.0, 0.35, 0.0),
-                List.of(new GuiButton(
+                List.of(new GuiRectangle(
                         buttonId,
-                        Component.text("Button"),
                         new GuiVector(0.0, -0.15, 0.0),
-                        new GuiButtonAction.Navigate(targetScreenId))));
+                        1.0F,
+                        0.4F,
+                        org.bukkit.Material.BLACK_CONCRETE,
+                        Component.text("Button"),
+                        new GuiAction.Navigate(targetScreenId))));
     }
 
-    private static GuiButton onlyButton(GuiScreen screen) {
-        assertEquals(1, screen.buttons().size());
-        return screen.buttons().getFirst();
+    private static GuiRectangle onlyButton(GuiScreen screen) {
+        return screen.components().stream()
+                .filter(GuiRectangle.class::isInstance)
+                .map(GuiRectangle.class::cast)
+                .filter(GuiRectangle::clickable)
+                .findFirst()
+                .orElseThrow();
     }
 }

@@ -6,23 +6,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 final class GuiRaycastTest {
-    private static final GuiVector EYE_POSITION = new GuiVector(0.0, 64.125, 0.0);
-    private static final GuiVector BUTTON_DISPLAY_ORIGIN = new GuiVector(0.0, 64.0, 2.5);
+    private static final GuiVector EYE_POSITION = new GuiVector(0.0, 64.0, 0.0);
+    private static final GuiVector BUTTON_CENTER = new GuiVector(0.0, 64.0, 2.5);
     private static final GuiVector PLANE_RIGHT = new GuiVector(-1.0, 0.0, 0.0);
     private static final GuiVector PLANE_UP = new GuiVector(0.0, 1.0, 0.0);
     private static final GuiVector PLANE_NORMAL = new GuiVector(0.0, 0.0, 1.0);
-    private static final GuiButtonHitbox HITBOX = new GuiButtonHitbox(1.0F, 0.25F);
+    private static final float WIDTH = 1.0F;
+    private static final float HEIGHT = 0.25F;
 
     @Test
     void acceptsRayThroughTheCenterOfTheBillboardText() {
         assertTrue(GuiRaycast.hitsButton(
                 EYE_POSITION,
                 new GuiVector(0.0, 0.0, 1.0),
-                BUTTON_DISPLAY_ORIGIN,
+                BUTTON_CENTER,
                 PLANE_RIGHT,
                 PLANE_UP,
                 PLANE_NORMAL,
-                HITBOX));
+                WIDTH,
+                HEIGHT));
     }
 
     @Test
@@ -30,24 +32,26 @@ final class GuiRaycastTest {
         assertFalse(GuiRaycast.hitsButton(
                 EYE_POSITION,
                 new GuiVector(0.5, 0.0, 1.0),
-                BUTTON_DISPLAY_ORIGIN,
+                BUTTON_CENTER,
                 PLANE_RIGHT,
                 PLANE_UP,
                 PLANE_NORMAL,
-                HITBOX));
+                WIDTH,
+                HEIGHT));
     }
 
     @Test
     void acceptsAnAngledRayAgainstTheFixedPlane() {
-        GuiVector viewerPosition = new GuiVector(2.5, 64.125, 0.0);
+        GuiVector viewerPosition = new GuiVector(2.5, 64.0, 0.0);
         assertTrue(GuiRaycast.hitsButton(
                 viewerPosition,
                 new GuiVector(-1.0, 0.0, 1.0),
-                BUTTON_DISPLAY_ORIGIN,
+                BUTTON_CENTER,
                 PLANE_RIGHT,
                 PLANE_UP,
                 PLANE_NORMAL,
-                HITBOX));
+                WIDTH,
+                HEIGHT));
     }
 
     @Test
@@ -55,11 +59,12 @@ final class GuiRaycastTest {
         assertFalse(GuiRaycast.hitsButton(
                 EYE_POSITION,
                 new GuiVector(0.0, 0.0, -1.0),
-                BUTTON_DISPLAY_ORIGIN,
+                BUTTON_CENTER,
                 PLANE_RIGHT,
                 PLANE_UP,
                 PLANE_NORMAL,
-                HITBOX));
+                WIDTH,
+                HEIGHT));
     }
 
     @Test
@@ -68,22 +73,24 @@ final class GuiRaycastTest {
         assertFalse(GuiRaycast.hitsButton(
                 viewerPosition,
                 new GuiVector(0.0, -1.0, 0.0),
-                BUTTON_DISPLAY_ORIGIN,
+                BUTTON_CENTER,
                 PLANE_RIGHT,
                 PLANE_UP,
                 PLANE_NORMAL,
-                HITBOX));
+                WIDTH,
+                HEIGHT));
     }
 
     @Test
     void rejectsRayBelowTheDisplayOrigin() {
         assertFalse(GuiRaycast.hitsButton(
-                new GuiVector(0.0, 63.99, 0.0),
+                new GuiVector(0.0, 63.8, 0.0),
                 new GuiVector(0.0, 0.0, 1.0),
-                BUTTON_DISPLAY_ORIGIN,
+                BUTTON_CENTER,
                 PLANE_RIGHT,
                 PLANE_UP,
                 PLANE_NORMAL,
-                HITBOX));
+                WIDTH,
+                HEIGHT));
     }
 }
