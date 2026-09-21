@@ -7,15 +7,13 @@ record GuiButton(
         String id,
         Component label,
         GuiVector position,
-        String targetScreenId) {
+        GuiButtonAction action) {
     GuiButton {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("GUI button ID must not be blank");
         }
         Objects.requireNonNull(label, "label");
         Objects.requireNonNull(position, "position");
-        if (targetScreenId == null || targetScreenId.isBlank()) {
-            throw new IllegalArgumentException("GUI button target screen ID must not be blank");
-        }
+        Objects.requireNonNull(action, "action");
     }
 }

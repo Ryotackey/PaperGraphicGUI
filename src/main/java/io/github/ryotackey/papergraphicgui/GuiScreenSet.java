@@ -26,10 +26,12 @@ final class GuiScreenSet {
             throw new IllegalArgumentException("Unknown initial GUI screen ID: " + initialScreenId);
         }
         for (GuiScreen screen : screensById.values()) {
-            String targetScreenId = screen.button().targetScreenId();
-            if (!screensById.containsKey(targetScreenId)) {
-                throw new IllegalArgumentException(
-                        "Unknown target GUI screen ID: " + targetScreenId);
+            for (GuiButton button : screen.buttons()) {
+                if (button.action() instanceof GuiButtonAction.Navigate navigate
+                        && !screensById.containsKey(navigate.targetScreenId())) {
+                    throw new IllegalArgumentException(
+                            "Unknown target GUI screen ID: " + navigate.targetScreenId());
+                }
             }
         }
 
@@ -43,10 +45,13 @@ final class GuiScreenSet {
 
     GuiScreen targetScreen(GuiButton button) {
         Objects.requireNonNull(button, "button");
-        GuiScreen targetScreen = this.screens.get(button.targetScreenId());
+        if (!(button.action() instanceof GuiButtonAction.Navigate navigate)) {
+            throw new IllegalArgumentException("GUI button does not navigate: " + button.id());
+        }
+        GuiScreen targetScreen = this.screens.get(navigate.targetScreenId());
         if (targetScreen == null) {
             throw new IllegalArgumentException(
-                    "Unknown target GUI screen ID: " + button.targetScreenId());
+                    "Unknown target GUI screen ID: " + navigate.targetScreenId());
         }
         return targetScreen;
     }

@@ -1,6 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,23 +18,29 @@ final class GuiScreenSetTest {
         GuiScreenSet screens = DemoGuiScreens.createSet();
 
         GuiScreen main = screens.initialScreen();
-        GuiScreen second = screens.targetScreen(main.button());
-        GuiScreen returnedMain = screens.targetScreen(second.button());
+        GuiButton next = onlyButton(main);
+        GuiScreen second = screens.targetScreen(next);
+        GuiButton back = onlyButton(second);
+        GuiScreen returnedMain = screens.targetScreen(back);
 
         assertEquals("main", main.id());
         assertEquals(
                 Component.text("Main Screen", NamedTextColor.GOLD).decorate(TextDecoration.BOLD),
                 main.title());
-        assertEquals("next", main.button().id());
-        assertEquals("second", main.button().targetScreenId());
-        assertEquals(Component.text("  Next  ", NamedTextColor.WHITE), main.button().label());
-        assertEquals(new GuiVector(0.0, -0.15, 0.0), main.button().position());
+        assertEquals("next", next.id());
+        assertEquals(
+                "second",
+                assertInstanceOf(GuiButtonAction.Navigate.class, next.action()).targetScreenId());
+        assertEquals(Component.text("  Next  ", NamedTextColor.WHITE), next.label());
+        assertEquals(new GuiVector(0.0, -0.15, 0.0), next.position());
         assertEquals("second", second.id());
         assertEquals(
                 Component.text("Second Screen", NamedTextColor.GOLD).decorate(TextDecoration.BOLD),
                 second.title());
-        assertEquals("back", second.button().id());
-        assertEquals("main", second.button().targetScreenId());
+        assertEquals("back", back.id());
+        assertEquals(
+                "main",
+                assertInstanceOf(GuiButtonAction.Navigate.class, back.action()).targetScreenId());
         assertSame(main, returnedMain);
     }
 
@@ -42,16 +49,16 @@ final class GuiScreenSetTest {
         GuiScreenSet screens = DemoGuiScreens.createSizeSampleSet();
 
         GuiScreen shortButton = screens.initialScreen();
-        GuiScreen mediumButton = screens.targetScreen(shortButton.button());
-        GuiScreen longButton = screens.targetScreen(mediumButton.button());
-        GuiScreen returnedShortButton = screens.targetScreen(longButton.button());
+        GuiScreen mediumButton = screens.targetScreen(onlyButton(shortButton));
+        GuiScreen longButton = screens.targetScreen(onlyButton(mediumButton));
+        GuiScreen returnedShortButton = screens.targetScreen(onlyButton(longButton));
 
         GuiButtonHitbox shortHitbox =
-                GuiButtonHitboxCalculator.calculate(shortButton.button().label());
+                GuiButtonHitboxCalculator.calculate(onlyButton(shortButton).label());
         GuiButtonHitbox mediumHitbox =
-                GuiButtonHitboxCalculator.calculate(mediumButton.button().label());
+                GuiButtonHitboxCalculator.calculate(onlyButton(mediumButton).label());
         GuiButtonHitbox longHitbox =
-                GuiButtonHitboxCalculator.calculate(longButton.button().label());
+                GuiButtonHitboxCalculator.calculate(onlyButton(longButton).label());
 
         assertTrue(shortHitbox.width() < mediumHitbox.width());
         assertTrue(mediumHitbox.width() < longHitbox.width());
@@ -82,10 +89,15 @@ final class GuiScreenSetTest {
                 screenId,
                 Component.text("Title"),
                 new GuiVector(0.0, 0.35, 0.0),
-                new GuiButton(
+                List.of(new GuiButton(
                         buttonId,
                         Component.text("Button"),
                         new GuiVector(0.0, -0.15, 0.0),
-                        targetScreenId));
+                        new GuiButtonAction.Navigate(targetScreenId))));
+    }
+
+    private static GuiButton onlyButton(GuiScreen screen) {
+        assertEquals(1, screen.buttons().size());
+        return screen.buttons().getFirst();
     }
 }
