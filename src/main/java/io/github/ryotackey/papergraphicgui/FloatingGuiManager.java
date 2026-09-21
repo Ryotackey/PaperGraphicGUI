@@ -28,33 +28,15 @@ final class FloatingGuiManager {
     private static final float INPUT_CAPTURE_HEIGHT = 2.0F;
 
     private final Plugin plugin;
-    private final GuiScreenSet defaultScreens;
-    private final GuiScreenSet sizeSampleScreens;
-    private final GuiScreenSet gridScreens;
     private final Map<UUID, FloatingGuiSession> sessions = new HashMap<>();
     private final Map<UUID, PlayerFreezeState> freezeStates = new HashMap<>();
     private final Map<UUID, Integer> lastHandledClickTicks = new HashMap<>();
 
     FloatingGuiManager(Plugin plugin) {
         this.plugin = plugin;
-        this.defaultScreens = DemoGuiScreens.createSet();
-        this.sizeSampleScreens = DemoGuiScreens.createSizeSampleSet();
-        this.gridScreens = DemoGuiScreens.createGridSet();
     }
 
-    void open(Player owner) {
-        open(owner, this.defaultScreens);
-    }
-
-    void openSizeSamples(Player owner) {
-        open(owner, this.sizeSampleScreens);
-    }
-
-    void openGridSample(Player owner) {
-        open(owner, this.gridScreens);
-    }
-
-    private void open(Player owner, GuiScreenSet screens) {
+    void open(Player owner, GuiScreenSet screens) {
         close(owner);
 
         GuiTransform transform = calculateTransform(owner);

@@ -27,7 +27,7 @@ final class GuiCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            this.guiManager.open(player);
+            this.guiManager.open(player, DemoGuiScreens.createSet());
             return true;
         }
 
@@ -39,12 +39,12 @@ final class GuiCommand implements CommandExecutor {
         }
 
         if (args.length == 1 && args[0].equalsIgnoreCase("sizes")) {
-            this.guiManager.openSizeSamples(player);
+            this.guiManager.open(player, DemoGuiScreens.createSizeSampleSet());
             return true;
         }
 
         if (args.length == 1 && args[0].equalsIgnoreCase("grid")) {
-            this.guiManager.openGridSample(player);
+            this.guiManager.open(player, DemoGuiScreens.createGridSet());
             return true;
         }
 
