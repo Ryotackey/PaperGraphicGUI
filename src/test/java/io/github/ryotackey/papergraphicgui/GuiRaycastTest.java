@@ -16,7 +16,7 @@ final class GuiRaycastTest {
 
     @Test
     void acceptsRayThroughTheCenterOfTheBillboardText() {
-        assertTrue(GuiRaycast.hitsButton(
+        assertTrue(GuiRaycast.hitsRectangle(
                 EYE_POSITION,
                 new GuiVector(0.0, 0.0, 1.0),
                 BUTTON_CENTER,
@@ -29,7 +29,7 @@ final class GuiRaycastTest {
 
     @Test
     void rejectsRayOutsideTheTextWidth() {
-        assertFalse(GuiRaycast.hitsButton(
+        assertFalse(GuiRaycast.hitsRectangle(
                 EYE_POSITION,
                 new GuiVector(0.5, 0.0, 1.0),
                 BUTTON_CENTER,
@@ -43,7 +43,7 @@ final class GuiRaycastTest {
     @Test
     void acceptsAnAngledRayAgainstTheFixedPlane() {
         GuiVector viewerPosition = new GuiVector(2.5, 64.0, 0.0);
-        assertTrue(GuiRaycast.hitsButton(
+        assertTrue(GuiRaycast.hitsRectangle(
                 viewerPosition,
                 new GuiVector(-1.0, 0.0, 1.0),
                 BUTTON_CENTER,
@@ -56,7 +56,7 @@ final class GuiRaycastTest {
 
     @Test
     void rejectsRayPointingAwayFromTheGui() {
-        assertFalse(GuiRaycast.hitsButton(
+        assertFalse(GuiRaycast.hitsRectangle(
                 EYE_POSITION,
                 new GuiVector(0.0, 0.0, -1.0),
                 BUTTON_CENTER,
@@ -70,7 +70,7 @@ final class GuiRaycastTest {
     @Test
     void rejectsRayParallelToTheFixedPlane() {
         GuiVector viewerPosition = new GuiVector(0.0, 66.5, 2.5);
-        assertFalse(GuiRaycast.hitsButton(
+        assertFalse(GuiRaycast.hitsRectangle(
                 viewerPosition,
                 new GuiVector(0.0, -1.0, 0.0),
                 BUTTON_CENTER,
@@ -83,7 +83,7 @@ final class GuiRaycastTest {
 
     @Test
     void rejectsRayBelowTheDisplayOrigin() {
-        assertFalse(GuiRaycast.hitsButton(
+        assertFalse(GuiRaycast.hitsRectangle(
                 new GuiVector(0.0, 63.8, 0.0),
                 new GuiVector(0.0, 0.0, 1.0),
                 BUTTON_CENTER,

@@ -18,8 +18,7 @@ public final class PaperGraphicGuiPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (this.guiManager != null) {
-            this.guiManager.closeAll();
+            this.guiManager.shutdown();
         }
     }
 }
-
