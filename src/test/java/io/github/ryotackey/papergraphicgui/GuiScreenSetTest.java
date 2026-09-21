@@ -22,7 +22,8 @@ final class GuiScreenSetTest {
         GuiScreen main = screens.initialScreen();
         GuiRectangle next = onlyButton(main);
         GuiScreen second = screens.targetScreen(next);
-        GuiRectangle back = onlyButton(second);
+        GuiRectangle back = button(second, "back");
+        GuiRectangle close = button(second, "close");
         GuiScreen returnedMain = screens.targetScreen(back);
 
         assertEquals("main", main.id());
@@ -47,6 +48,7 @@ final class GuiScreenSetTest {
                 "main",
                 assertInstanceOf(GuiAction.Navigate.class, back.action().orElseThrow())
                         .targetScreenId());
+        assertInstanceOf(GuiAction.Close.class, close.action().orElseThrow());
         assertSame(main, returnedMain);
     }
 
@@ -103,6 +105,15 @@ final class GuiScreenSetTest {
                 .filter(GuiRectangle.class::isInstance)
                 .map(GuiRectangle.class::cast)
                 .filter(GuiRectangle::clickable)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static GuiRectangle button(GuiScreen screen, String id) {
+        return screen.components().stream()
+                .filter(GuiRectangle.class::isInstance)
+                .map(GuiRectangle.class::cast)
+                .filter(rectangle -> rectangle.id().equals(id))
                 .findFirst()
                 .orElseThrow();
     }

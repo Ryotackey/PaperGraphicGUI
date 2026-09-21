@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
@@ -95,5 +96,12 @@ final class FloatingGuiListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         this.guiManager.close(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
+        if (this.guiManager.isOpen(event.getPlayer())) {
+            this.guiManager.close(event.getPlayer());
+        }
     }
 }

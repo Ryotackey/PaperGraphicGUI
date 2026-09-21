@@ -32,12 +32,19 @@ final class DemoGuiScreens {
                 "second",
                 title("Second Screen"),
                 TITLE_POSITION,
-                List.of(button(
-                        "back",
-                        "Back",
-                        BUTTON_POSITION,
-                        1.15F,
-                        new GuiAction.Navigate("main"))));
+                List.of(
+                        button(
+                                "back",
+                                "Back",
+                                new GuiVector(-0.7, -0.15, 0.0),
+                                1.05F,
+                                new GuiAction.Navigate("main")),
+                        button(
+                                "close",
+                                "Close",
+                                new GuiVector(0.7, -0.15, 0.0),
+                                1.05F,
+                                new GuiAction.Close())));
 
         return new GuiScreenSet(main.id(), List.of(main, second));
     }
