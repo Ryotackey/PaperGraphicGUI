@@ -104,29 +104,89 @@ final class DemoGuiScreens {
     static GuiScreenSet createComponentSampleSet() {
         GuiScreen components = new GuiScreen(
                 "components",
-                title("Shape & Icon Components"),
-                TITLE_POSITION,
+                title("Colorful Menu"),
+                new GuiVector(0.0, 0.72, 0.0),
                 List.of(
                         new GuiRectangle(
                                 "panel",
-                                new GuiVector(0.0, -0.05, 0.04),
-                                2.5F,
-                                1.15F,
-                                Material.GRAY_CONCRETE),
+                                new GuiVector(0.0, -0.32, 0.06),
+                                3.4F,
+                                1.65F,
+                                Material.LIGHT_GRAY_CONCRETE),
+                        new GuiRectangle(
+                                "red-swatch",
+                                new GuiVector(-1.2, 0.27, 0.02),
+                                0.58F,
+                                0.48F,
+                                Material.RED_CONCRETE),
+                        new GuiRectangle(
+                                "yellow-swatch",
+                                new GuiVector(-0.4, 0.27, 0.02),
+                                0.58F,
+                                0.48F,
+                                Material.YELLOW_CONCRETE),
+                        new GuiRectangle(
+                                "green-swatch",
+                                new GuiVector(0.4, 0.27, 0.02),
+                                0.58F,
+                                0.48F,
+                                Material.LIME_CONCRETE),
+                        new GuiRectangle(
+                                "blue-swatch",
+                                new GuiVector(1.2, 0.27, 0.02),
+                                0.58F,
+                                0.48F,
+                                Material.LIGHT_BLUE_CONCRETE),
                         new GuiIcon(
                                 "diamond-icon",
-                                new GuiVector(-0.8, -0.15, -0.03),
-                                0.45F,
-                                0.45F,
+                                new GuiVector(-1.2, 0.27, -0.04),
+                                0.32F,
+                                0.32F,
                                 new ItemStack(Material.DIAMOND)),
-                        button(
-                                "sample-button",
-                                "Click me",
-                                new GuiVector(0.3, -0.15, -0.03),
-                                1.35F,
-                                new GuiAction.SendMessage(Component.text(
-                                        "Clicked!", NamedTextColor.GREEN)))));
+                        new GuiIcon(
+                                "gold-icon",
+                                new GuiVector(-0.4, 0.27, -0.04),
+                                0.32F,
+                                0.32F,
+                                new ItemStack(Material.GOLD_INGOT)),
+                        new GuiIcon(
+                                "emerald-icon",
+                                new GuiVector(0.4, 0.27, -0.04),
+                                0.32F,
+                                0.32F,
+                                new ItemStack(Material.EMERALD)),
+                        new GuiIcon(
+                                "lapis-icon",
+                                new GuiVector(1.2, 0.27, -0.04),
+                                0.32F,
+                                0.32F,
+                                new ItemStack(Material.LAPIS_LAZULI)),
+                        menuButton(
+                                "red-button", "Red", -0.82, -0.20, Material.RED_CONCRETE),
+                        menuButton(
+                                "blue-button", "Blue", 0.82, -0.20, Material.BLUE_CONCRETE),
+                        menuButton(
+                                "green-button", "Green", -0.82, -0.72, Material.GREEN_CONCRETE),
+                        menuButton(
+                                "purple-button",
+                                "Purple",
+                                0.82,
+                                -0.72,
+                                Material.PURPLE_CONCRETE)));
         return new GuiScreenSet(components.id(), List.of(components));
+    }
+
+    private static GuiRectangle menuButton(
+            String id, String label, double x, double y, Material blockMaterial) {
+        return new GuiRectangle(
+                id,
+                new GuiVector(x, y, -0.03),
+                1.35F,
+                0.40F,
+                blockMaterial,
+                buttonLabel(label),
+                new GuiAction.SendMessage(Component.text(
+                        "Selected: " + label, NamedTextColor.WHITE)));
     }
 
     private static GuiRectangle gridButton(
