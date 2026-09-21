@@ -52,6 +52,14 @@ final class GuiTransformTest {
                 transform.toWorld(new GuiVector(0.0, 0.0, 0.75)));
     }
 
+    @Test
+    void turnsFixedDisplaysBackTowardTheCreator() {
+        GuiTransform transform =
+                GuiTransform.fromView(EYE_POSITION, new GuiVector(0.0, 0.0, -1.0), 180.0, 2.5);
+
+        assertEquals(360.0, transform.displayYawDegrees(), EPSILON);
+    }
+
     private static Stream<Arguments> cardinalDirections() {
         return Stream.of(
                 Arguments.of(

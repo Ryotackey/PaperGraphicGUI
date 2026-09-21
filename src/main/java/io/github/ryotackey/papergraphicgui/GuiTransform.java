@@ -8,12 +8,19 @@ final class GuiTransform {
     private final GuiVector right;
     private final GuiVector up;
     private final GuiVector forward;
+    private final double yawDegrees;
 
-    private GuiTransform(GuiVector origin, GuiVector right, GuiVector up, GuiVector forward) {
+    private GuiTransform(
+            GuiVector origin,
+            GuiVector right,
+            GuiVector up,
+            GuiVector forward,
+            double yawDegrees) {
         this.origin = origin;
         this.right = right;
         this.up = up;
         this.forward = forward;
+        this.yawDegrees = yawDegrees;
     }
 
     static GuiTransform fromView(
@@ -35,7 +42,7 @@ final class GuiTransform {
         GuiVector forward = horizontalForward.normalize();
         GuiVector right = forward.cross(WORLD_UP).normalize();
         GuiVector origin = eyePosition.add(forward.multiply(distance));
-        return new GuiTransform(origin, right, WORLD_UP, forward);
+        return new GuiTransform(origin, right, WORLD_UP, forward, yawDegrees);
     }
 
     GuiVector origin() {
@@ -52,6 +59,10 @@ final class GuiTransform {
 
     GuiVector forward() {
         return this.forward;
+    }
+
+    double displayYawDegrees() {
+        return this.yawDegrees + 180.0;
     }
 
     GuiVector toWorld(GuiVector localPosition) {

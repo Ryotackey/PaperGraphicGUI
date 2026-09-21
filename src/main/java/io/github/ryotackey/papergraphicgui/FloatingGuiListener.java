@@ -1,12 +1,20 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.papermc.paper.event.player.PlayerArmSwingEvent;
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.Vector;
 
 final class FloatingGuiListener implements Listener {
     private final FloatingGuiManager guiManager;
@@ -16,7 +24,23 @@ final class FloatingGuiListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+
+        if (event.getAction() != Action.RIGHT_CLICK_AIR
+                && event.getAction() != Action.RIGHT_CLICK_BLOCK
+                && event.getAction() != Action.LEFT_CLICK_AIR
+                && event.getAction() != Action.LEFT_CLICK_BLOCK) {
+            return;
+        }
+
+        this.guiManager.handleClick(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
@@ -24,11 +48,48 @@ final class FloatingGuiListener implements Listener {
         this.guiManager.handleInteraction(event.getPlayer(), event.getRightClicked());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (event.hasChangedPosition()) {
-            this.guiManager.handleMovement(event.getPlayer(), event.getTo());
+    @EventHandler
+    public void onPlayerArmSwing(PlayerArmSwingEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
         }
+
+        this.guiManager.handleClick(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (event instanceof PlayerTeleportEvent
+                || !event.hasChangedPosition()) {
+            return;
+        }
+
+        Location lockedDestination =
+                this.guiManager.lockedDestination(event.getPlayer(), event.getTo());
+        if (lockedDestination != null) {
+            event.setFrom(lockedDestination);
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (this.guiManager.isOpen(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerVelocity(PlayerVelocityEvent event) {
+        if (this.guiManager.isOpen(event.getPlayer())) {
+            event.setVelocity(new Vector());
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        this.guiManager.close(event.getEntity());
     }
 
     @EventHandler

@@ -7,5 +7,4 @@ description: A minimal world-space GUI built with Paper display entities
 commands:
   gui:
     description: Opens or closes the floating GUI
-    usage: /gui [close]
-
+    usage: /gui [close|sizes|grid]
