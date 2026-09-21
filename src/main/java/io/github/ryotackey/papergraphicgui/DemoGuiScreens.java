@@ -126,9 +126,9 @@ final class DemoGuiScreens {
         return new GuiScreenSet(components.id(), List.of(components));
     }
 
-    private static GuiRectangleButton gridButton(
+    private static GuiRectangle gridButton(
             String id, String label, double x, double y, NamedTextColor messageColor) {
-        return new GuiRectangleButton(
+        return new GuiRectangle(
                 id,
                 new GuiVector(x, y, 0.0),
                 1.55F,
@@ -139,13 +139,13 @@ final class DemoGuiScreens {
                         Component.text("Clicked: " + label, messageColor)));
     }
 
-    private static GuiRectangleButton button(
+    private static GuiRectangle button(
             String id,
             String label,
             GuiVector position,
             float width,
             GuiButtonAction action) {
-        return new GuiRectangleButton(
+        return new GuiRectangle(
                 id,
                 position,
                 width,

@@ -1,6 +1,6 @@
 package io.github.ryotackey.papergraphicgui;
 
-sealed interface GuiComponent permits GuiIcon, GuiRectangle, GuiRectangleButton {
+sealed interface GuiComponent permits GuiIcon, GuiRectangle {
     String id();
 
     GuiVector position();

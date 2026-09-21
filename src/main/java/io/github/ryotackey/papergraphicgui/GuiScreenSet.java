@@ -27,8 +27,8 @@ final class GuiScreenSet {
         }
         for (GuiScreen screen : screensById.values()) {
             for (GuiComponent component : screen.components()) {
-                if (component instanceof GuiRectangleButton button
-                        && button.action() instanceof GuiButtonAction.Navigate navigate
+                if (component instanceof GuiRectangle rectangle
+                        && rectangle.action().orElse(null) instanceof GuiButtonAction.Navigate navigate
                         && !screensById.containsKey(navigate.targetScreenId())) {
                     throw new IllegalArgumentException(
                             "Unknown target GUI screen ID: " + navigate.targetScreenId());
@@ -44,10 +44,10 @@ final class GuiScreenSet {
         return this.screens.get(this.initialScreenId);
     }
 
-    GuiScreen targetScreen(GuiRectangleButton button) {
-        Objects.requireNonNull(button, "button");
-        if (!(button.action() instanceof GuiButtonAction.Navigate navigate)) {
-            throw new IllegalArgumentException("GUI button does not navigate: " + button.id());
+    GuiScreen targetScreen(GuiRectangle rectangle) {
+        Objects.requireNonNull(rectangle, "rectangle");
+        if (!(rectangle.action().orElse(null) instanceof GuiButtonAction.Navigate navigate)) {
+            throw new IllegalArgumentException("GUI rectangle does not navigate: " + rectangle.id());
         }
         GuiScreen targetScreen = this.screens.get(navigate.targetScreenId());
         if (targetScreen == null) {

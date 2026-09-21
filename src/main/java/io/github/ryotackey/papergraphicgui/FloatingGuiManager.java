@@ -127,7 +127,8 @@ final class FloatingGuiManager {
         Location eyeLocation = player.getEyeLocation();
         org.bukkit.util.Vector viewDirection = eyeLocation.getDirection();
         for (RenderedComponent renderedComponent : session.components()) {
-            if (!(renderedComponent.definition() instanceof GuiRectangleButton definition)) {
+            if (!(renderedComponent.definition() instanceof GuiRectangle definition)
+                    || !definition.clickable()) {
                 continue;
             }
             if (!hitsButton(
@@ -143,7 +144,7 @@ final class FloatingGuiManager {
                 return false;
             }
 
-            switch (definition.action()) {
+            switch (definition.action().orElseThrow()) {
                 case GuiButtonAction.Navigate ignored -> {
                     GuiScreen nextScreen = session.screens().targetScreen(definition);
                     this.sessions.put(
@@ -242,30 +243,28 @@ final class FloatingGuiManager {
                 Location location = toDisplayLocation(
                         world, transform.toWorld(definition.position()), transform);
                 List<Entity> entities = switch (definition) {
-                    case GuiRectangle rectangle -> List.of(spawnRectangle(
-                            location,
-                            rectangle.width(),
-                            rectangle.height(),
-                            rectangle.material()));
-                    case GuiIcon icon -> List.of(spawnIcon(location, icon));
-                    case GuiRectangleButton button -> {
+                    case GuiRectangle rectangle -> {
                         BlockDisplay background = spawnRectangle(
                                 location,
-                                button.width(),
-                                button.height(),
-                                button.material());
+                                rectangle.width(),
+                                rectangle.height(),
+                                rectangle.material());
+                        if (rectangle.label().isEmpty()) {
+                            yield List.of(background);
+                        }
                         try {
-                            GuiVector labelPosition = button.position().add(new GuiVector(
+                            GuiVector labelPosition = rectangle.position().add(new GuiVector(
                                     0.0, -LABEL_VERTICAL_OFFSET, LABEL_FORWARD_OFFSET));
                             TextDisplay label = spawnButtonLabel(
                                     toDisplayLocation(world, transform.toWorld(labelPosition), transform),
-                                    button.label());
+                                    rectangle.label().orElseThrow());
                             yield List.of(background, label);
                         } catch (RuntimeException exception) {
                             background.remove();
                             throw exception;
                         }
                     }
+                    case GuiIcon icon -> List.of(spawnIcon(location, icon));
                 };
                 components.add(new RenderedComponent(definition, entities));
             }

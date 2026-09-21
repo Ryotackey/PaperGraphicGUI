@@ -18,9 +18,9 @@ final class GuiScreenSetTest {
         GuiScreenSet screens = DemoGuiScreens.createSet();
 
         GuiScreen main = screens.initialScreen();
-        GuiRectangleButton next = onlyButton(main);
+        GuiRectangle next = onlyButton(main);
         GuiScreen second = screens.targetScreen(next);
-        GuiRectangleButton back = onlyButton(second);
+        GuiRectangle back = onlyButton(second);
         GuiScreen returnedMain = screens.targetScreen(back);
 
         assertEquals("main", main.id());
@@ -30,8 +30,11 @@ final class GuiScreenSetTest {
         assertEquals("next", next.id());
         assertEquals(
                 "second",
-                assertInstanceOf(GuiButtonAction.Navigate.class, next.action()).targetScreenId());
-        assertEquals(Component.text("  Next  ", NamedTextColor.WHITE), next.label());
+                assertInstanceOf(GuiButtonAction.Navigate.class, next.action().orElseThrow())
+                        .targetScreenId());
+        assertEquals(
+                Component.text("  Next  ", NamedTextColor.WHITE),
+                next.label().orElseThrow());
         assertEquals(new GuiVector(0.0, -0.15, 0.0), next.position());
         assertEquals("second", second.id());
         assertEquals(
@@ -40,7 +43,8 @@ final class GuiScreenSetTest {
         assertEquals("back", back.id());
         assertEquals(
                 "main",
-                assertInstanceOf(GuiButtonAction.Navigate.class, back.action()).targetScreenId());
+                assertInstanceOf(GuiButtonAction.Navigate.class, back.action().orElseThrow())
+                        .targetScreenId());
         assertSame(main, returnedMain);
     }
 
@@ -82,7 +86,7 @@ final class GuiScreenSetTest {
                 screenId,
                 Component.text("Title"),
                 new GuiVector(0.0, 0.35, 0.0),
-                List.of(new GuiRectangleButton(
+                List.of(new GuiRectangle(
                         buttonId,
                         new GuiVector(0.0, -0.15, 0.0),
                         1.0F,
@@ -92,10 +96,11 @@ final class GuiScreenSetTest {
                         new GuiButtonAction.Navigate(targetScreenId))));
     }
 
-    private static GuiRectangleButton onlyButton(GuiScreen screen) {
+    private static GuiRectangle onlyButton(GuiScreen screen) {
         return screen.components().stream()
-                .filter(GuiRectangleButton.class::isInstance)
-                .map(GuiRectangleButton.class::cast)
+                .filter(GuiRectangle.class::isInstance)
+                .map(GuiRectangle.class::cast)
+                .filter(GuiRectangle::clickable)
                 .findFirst()
                 .orElseThrow();
     }

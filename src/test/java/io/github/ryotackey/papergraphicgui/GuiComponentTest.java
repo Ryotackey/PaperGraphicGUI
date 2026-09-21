@@ -12,7 +12,7 @@ final class GuiComponentTest {
     void rejectsDuplicateIdsAcrossDifferentRectangleComponentTypes() {
         GuiRectangle rectangle = new GuiRectangle(
                 "duplicate", new GuiVector(0.0, 0.0, 0.0), 1.0F, 1.0F, Material.STONE);
-        GuiRectangleButton button = new GuiRectangleButton(
+        GuiRectangle button = new GuiRectangle(
                 "duplicate",
                 new GuiVector(0.0, 0.0, 0.0),
                 0.5F,
