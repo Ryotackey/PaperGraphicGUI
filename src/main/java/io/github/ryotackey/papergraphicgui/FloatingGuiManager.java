@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -24,6 +25,7 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
@@ -38,14 +40,19 @@ final class FloatingGuiManager {
     private static final float RECTANGLE_DEPTH = 0.035F;
     private static final double LABEL_VERTICAL_OFFSET = 0.13;
     private static final double LABEL_FORWARD_OFFSET = -0.025;
+    private static final double TOOLTIP_VERTICAL_GAP = 0.12;
+    private static final double TOOLTIP_FORWARD_OFFSET = -0.07;
 
     private final Plugin plugin;
     private final Map<UUID, FloatingGuiSession> sessions = new HashMap<>();
     private final Map<UUID, PlayerFreezeState> freezeStates = new HashMap<>();
     private final Map<UUID, Integer> lastHandledClickTicks = new HashMap<>();
+    private final BukkitTask hoverTask;
 
     FloatingGuiManager(Plugin plugin) {
         this.plugin = plugin;
+        this.hoverTask = Bukkit.getScheduler()
+                .runTaskTimer(plugin, this::updateHoverStates, 1L, 2L);
     }
 
     void open(Player owner, GuiScreenSet screens) {
@@ -86,7 +93,9 @@ final class FloatingGuiManager {
                             initialScreen,
                             title,
                             components,
-                            inputCapture));
+                            inputCapture,
+                            null,
+                            null));
         } catch (RuntimeException exception) {
             this.sessions.remove(owner.getUniqueId());
             restorePlayer(owner.getUniqueId(), owner);
@@ -103,6 +112,11 @@ final class FloatingGuiManager {
         Set<UUID> ownerUuids = new HashSet<>(this.sessions.keySet());
         ownerUuids.addAll(this.freezeStates.keySet());
         ownerUuids.forEach(this::close);
+    }
+
+    void shutdown() {
+        this.hoverTask.cancel();
+        closeAll();
     }
 
     boolean isOpen(Player player) {
@@ -135,7 +149,7 @@ final class FloatingGuiManager {
                     || !definition.clickable()) {
                 continue;
             }
-            if (!hitsButton(
+            if (!hitsRectangle(
                     session.transform(),
                     definition.position(),
                     definition.width(),
@@ -208,6 +222,17 @@ final class FloatingGuiManager {
             display.text(label);
             display.setDefaultBackground(false);
             display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+        });
+    }
+
+    private TextDisplay spawnTooltip(Location location, Component tooltip) {
+        return location.getWorld().spawn(location, TextDisplay.class, display -> {
+            configureEntity(display);
+            configureTextDisplay(display);
+            display.text(tooltip);
+            display.setDefaultBackground(false);
+            display.setBackgroundColor(Color.fromARGB(220, 20, 20, 20));
+            display.setLineWidth(180);
         });
     }
 
@@ -304,6 +329,9 @@ final class FloatingGuiManager {
             session.title().teleport(toDisplayLocation(
                     world, session.transform().toWorld(screen.titlePosition()), session.transform()));
             session.components().forEach(component -> component.entities().forEach(Entity::remove));
+            if (session.tooltipDisplay() != null) {
+                session.tooltipDisplay().remove();
+            }
             return session.withScreen(screen, components);
         } catch (RuntimeException exception) {
             components.forEach(component -> component.entities().forEach(Entity::remove));
@@ -321,14 +349,85 @@ final class FloatingGuiManager {
         return true;
     }
 
-    private static boolean hitsButton(
+    private void updateHoverStates() {
+        for (FloatingGuiSession session : List.copyOf(this.sessions.values())) {
+            Player owner = Bukkit.getPlayer(session.ownerUuid());
+            if (owner == null || !owner.isOnline()) {
+                continue;
+            }
+
+            GuiRectangle hoveredRectangle = findHoveredRectangle(owner, session);
+            String hoveredComponentId =
+                    hoveredRectangle == null ? null : hoveredRectangle.id();
+            if (java.util.Objects.equals(
+                    hoveredComponentId, session.hoveredComponentId())) {
+                continue;
+            }
+
+            TextDisplay newTooltip = null;
+            try {
+                if (hoveredRectangle != null) {
+                    GuiVector tooltipPosition = hoveredRectangle.position().add(new GuiVector(
+                            0.0,
+                            hoveredRectangle.height() * 0.5 + TOOLTIP_VERTICAL_GAP,
+                            TOOLTIP_FORWARD_OFFSET));
+                    newTooltip = spawnTooltip(
+                            toDisplayLocation(
+                                    session.anchor().getWorld(),
+                                    session.transform().toWorld(tooltipPosition),
+                                    session.transform()),
+                            hoveredRectangle.tooltip().orElseThrow());
+                    owner.showEntity(this.plugin, newTooltip);
+                }
+
+                if (session.tooltipDisplay() != null) {
+                    session.tooltipDisplay().remove();
+                }
+                this.sessions.put(
+                        session.ownerUuid(),
+                        session.withHover(hoveredComponentId, newTooltip));
+            } catch (RuntimeException exception) {
+                if (newTooltip != null) {
+                    newTooltip.remove();
+                }
+                this.plugin.getLogger().log(
+                        Level.WARNING,
+                        "Failed to update GUI tooltip for " + session.ownerUuid(),
+                        exception);
+            }
+        }
+    }
+
+    private static GuiRectangle findHoveredRectangle(
+            Player owner, FloatingGuiSession session) {
+        Location eyeLocation = owner.getEyeLocation();
+        org.bukkit.util.Vector viewDirection = eyeLocation.getDirection();
+        for (RenderedComponent renderedComponent : session.components()) {
+            if (!(renderedComponent.definition() instanceof GuiRectangle rectangle)
+                    || rectangle.tooltip().isEmpty()) {
+                continue;
+            }
+            if (hitsRectangle(
+                    session.transform(),
+                    rectangle.position(),
+                    rectangle.width(),
+                    rectangle.height(),
+                    eyeLocation,
+                    viewDirection)) {
+                return rectangle;
+            }
+        }
+        return null;
+    }
+
+    private static boolean hitsRectangle(
             GuiTransform transform,
             GuiVector localPosition,
             float width,
             float height,
             Location eyeLocation,
             org.bukkit.util.Vector viewDirection) {
-        return GuiRaycast.hitsButton(
+        return GuiRaycast.hitsRectangle(
                 toGuiVector(eyeLocation),
                 toGuiVector(viewDirection),
                 transform.toWorld(localPosition),
@@ -419,7 +518,9 @@ final class FloatingGuiManager {
             GuiScreen screen,
             TextDisplay title,
             List<RenderedComponent> components,
-            Interaction inputCapture) {
+            Interaction inputCapture,
+            String hoveredComponentId,
+            TextDisplay tooltipDisplay) {
         FloatingGuiSession withScreen(
                 GuiScreen newScreen, List<RenderedComponent> newComponents) {
             return new FloatingGuiSession(
@@ -430,7 +531,23 @@ final class FloatingGuiManager {
                     newScreen,
                     this.title,
                     newComponents,
-                    this.inputCapture);
+                    this.inputCapture,
+                    null,
+                    null);
+        }
+
+        FloatingGuiSession withHover(String newHoveredComponentId, TextDisplay newTooltipDisplay) {
+            return new FloatingGuiSession(
+                    this.ownerUuid,
+                    this.anchor,
+                    this.transform,
+                    this.screens,
+                    this.screen,
+                    this.title,
+                    this.components,
+                    this.inputCapture,
+                    newHoveredComponentId,
+                    newTooltipDisplay);
         }
 
         List<Entity> entities() {
@@ -438,6 +555,9 @@ final class FloatingGuiManager {
             entities.add(this.title);
             this.components.forEach(component -> entities.addAll(component.entities()));
             entities.add(this.inputCapture);
+            if (this.tooltipDisplay != null) {
+                entities.add(this.tooltipDisplay);
+            }
             return entities;
         }
     }

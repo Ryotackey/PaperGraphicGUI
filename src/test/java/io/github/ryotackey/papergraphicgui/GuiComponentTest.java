@@ -3,6 +3,7 @@ package io.github.ryotackey.papergraphicgui;
 import io.github.ryotackey.papergraphicgui.component.GuiAction;
 import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import net.kyori.adventure.text.Component;
@@ -10,6 +11,22 @@ import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
 
 final class GuiComponentTest {
+    @Test
+    void clickableRectangleCanDefineATooltip() {
+        Component tooltip = Component.text("More information");
+        GuiRectangle rectangle = new GuiRectangle(
+                "button",
+                new GuiVector(0.0, 0.0, 0.0),
+                1.0F,
+                0.4F,
+                Material.BLUE_CONCRETE,
+                Component.text("Button"),
+                new GuiAction.SendMessage(Component.text("Clicked")),
+                tooltip);
+
+        assertEquals(tooltip, rectangle.tooltip().orElseThrow());
+    }
+
     @Test
     void rejectsDuplicateIdsAcrossDifferentRectangleComponentTypes() {
         GuiRectangle rectangle = new GuiRectangle(

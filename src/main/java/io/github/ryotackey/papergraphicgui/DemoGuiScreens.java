@@ -162,14 +162,30 @@ final class DemoGuiScreens {
                                 0.32F,
                                 new ItemStack(Material.LAPIS_LAZULI)),
                         menuButton(
-                                "red-button", "Red", -0.82, -0.20, Material.RED_CONCRETE),
+                                "red-button",
+                                "Red",
+                                "Warm and energetic",
+                                -0.82,
+                                -0.20,
+                                Material.RED_CONCRETE),
                         menuButton(
-                                "blue-button", "Blue", 0.82, -0.20, Material.BLUE_CONCRETE),
+                                "blue-button",
+                                "Blue",
+                                "Cool and calm",
+                                0.82,
+                                -0.20,
+                                Material.BLUE_CONCRETE),
                         menuButton(
-                                "green-button", "Green", -0.82, -0.72, Material.GREEN_CONCRETE),
+                                "green-button",
+                                "Green",
+                                "Natural and balanced",
+                                -0.82,
+                                -0.72,
+                                Material.GREEN_CONCRETE),
                         menuButton(
                                 "purple-button",
                                 "Purple",
+                                "Creative and mysterious",
                                 0.82,
                                 -0.72,
                                 Material.PURPLE_CONCRETE)));
@@ -177,7 +193,12 @@ final class DemoGuiScreens {
     }
 
     private static GuiRectangle menuButton(
-            String id, String label, double x, double y, Material blockMaterial) {
+            String id,
+            String label,
+            String tooltip,
+            double x,
+            double y,
+            Material blockMaterial) {
         return new GuiRectangle(
                 id,
                 new GuiVector(x, y, -0.03),
@@ -186,7 +207,8 @@ final class DemoGuiScreens {
                 blockMaterial,
                 buttonLabel(label),
                 new GuiAction.SendMessage(Component.text(
-                        "Selected: " + label, NamedTextColor.WHITE)));
+                        "Selected: " + label, NamedTextColor.WHITE)),
+                Component.text(tooltip, NamedTextColor.WHITE));
     }
 
     private static GuiRectangle gridButton(

@@ -6,7 +6,7 @@ final class GuiRaycast {
 
     private GuiRaycast() {}
 
-    static boolean hitsButton(
+    static boolean hitsRectangle(
             GuiVector rayOrigin,
             GuiVector rayDirection,
             GuiVector componentCenter,
