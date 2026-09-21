@@ -1,5 +1,6 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiComponent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;

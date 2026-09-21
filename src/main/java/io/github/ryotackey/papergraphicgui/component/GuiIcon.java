@@ -1,15 +1,16 @@
-package io.github.ryotackey.papergraphicgui;
+package io.github.ryotackey.papergraphicgui.component;
 
+import io.github.ryotackey.papergraphicgui.GuiVector;
 import java.util.Objects;
 import org.bukkit.inventory.ItemStack;
 
-record GuiIcon(
+public record GuiIcon(
         String id,
         GuiVector position,
         float width,
         float height,
         ItemStack item) implements GuiComponent {
-    GuiIcon {
+    public GuiIcon {
         GuiComponent.validate(id, position, width, height);
         item = Objects.requireNonNull(item, "item").clone();
     }

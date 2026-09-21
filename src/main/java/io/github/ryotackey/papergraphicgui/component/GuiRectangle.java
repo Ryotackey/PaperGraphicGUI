@@ -1,21 +1,22 @@
-package io.github.ryotackey.papergraphicgui;
+package io.github.ryotackey.papergraphicgui.component;
 
+import io.github.ryotackey.papergraphicgui.GuiVector;
 import java.util.Objects;
 import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 
-record GuiRectangle(
+public record GuiRectangle(
         String id,
         GuiVector position,
         float width,
         float height,
-        Material material,
+        Material blockMaterial,
         Optional<Component> label,
-        Optional<GuiButtonAction> action) implements GuiComponent {
-    GuiRectangle {
+        Optional<GuiAction> action) implements GuiComponent {
+    public GuiRectangle {
         GuiComponent.validate(id, position, width, height);
-        Objects.requireNonNull(material, "material");
+        Objects.requireNonNull(blockMaterial, "blockMaterial");
         label = Objects.requireNonNull(label, "label");
         action = Objects.requireNonNull(action, "action");
         if (label.isPresent() != action.isPresent()) {
@@ -24,34 +25,34 @@ record GuiRectangle(
         }
     }
 
-    GuiRectangle(
+    public GuiRectangle(
             String id,
             GuiVector position,
             float width,
             float height,
-            Material material) {
-        this(id, position, width, height, material, Optional.empty(), Optional.empty());
+            Material blockMaterial) {
+        this(id, position, width, height, blockMaterial, Optional.empty(), Optional.empty());
     }
 
-    GuiRectangle(
+    public GuiRectangle(
             String id,
             GuiVector position,
             float width,
             float height,
-            Material material,
+            Material blockMaterial,
             Component label,
-            GuiButtonAction action) {
+            GuiAction action) {
         this(
                 id,
                 position,
                 width,
                 height,
-                material,
+                blockMaterial,
                 Optional.of(Objects.requireNonNull(label, "label")),
                 Optional.of(Objects.requireNonNull(action, "action")));
     }
 
-    boolean clickable() {
+    public boolean clickable() {
         return this.action.isPresent();
     }
 }

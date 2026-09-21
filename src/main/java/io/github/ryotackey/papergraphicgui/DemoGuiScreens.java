@@ -1,5 +1,8 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiIcon;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -24,7 +27,7 @@ final class DemoGuiScreens {
                         "Next",
                         BUTTON_POSITION,
                         1.15F,
-                        new GuiButtonAction.Navigate("second"))));
+                        new GuiAction.Navigate("second"))));
         GuiScreen second = new GuiScreen(
                 "second",
                 title("Second Screen"),
@@ -34,7 +37,7 @@ final class DemoGuiScreens {
                         "Back",
                         BUTTON_POSITION,
                         1.15F,
-                        new GuiButtonAction.Navigate("main"))));
+                        new GuiAction.Navigate("main"))));
 
         return new GuiScreenSet(main.id(), List.of(main, second));
     }
@@ -49,7 +52,7 @@ final class DemoGuiScreens {
                         "OK",
                         BUTTON_POSITION,
                         0.75F,
-                        new GuiButtonAction.Navigate("medium"))));
+                        new GuiAction.Navigate("medium"))));
         GuiScreen mediumButton = new GuiScreen(
                 "medium",
                 title("Medium Button"),
@@ -59,7 +62,7 @@ final class DemoGuiScreens {
                         "Continue",
                         BUTTON_POSITION,
                         1.35F,
-                        new GuiButtonAction.Navigate("long"))));
+                        new GuiAction.Navigate("long"))));
         GuiScreen longButton = new GuiScreen(
                 "long",
                 title("Long Button"),
@@ -69,7 +72,7 @@ final class DemoGuiScreens {
                         "Open Advanced Settings",
                         BUTTON_POSITION,
                         2.65F,
-                        new GuiButtonAction.Navigate("short"))));
+                        new GuiAction.Navigate("short"))));
 
         return new GuiScreenSet(
                 shortButton.id(), List.of(shortButton, mediumButton, longButton));
@@ -121,7 +124,7 @@ final class DemoGuiScreens {
                                 "Click me",
                                 new GuiVector(0.3, -0.15, -0.03),
                                 1.35F,
-                                new GuiButtonAction.SendMessage(Component.text(
+                                new GuiAction.SendMessage(Component.text(
                                         "Clicked!", NamedTextColor.GREEN)))));
         return new GuiScreenSet(components.id(), List.of(components));
     }
@@ -135,7 +138,7 @@ final class DemoGuiScreens {
                 BUTTON_HEIGHT,
                 Material.BLACK_CONCRETE,
                 buttonLabel(label),
-                new GuiButtonAction.SendMessage(
+                new GuiAction.SendMessage(
                         Component.text("Clicked: " + label, messageColor)));
     }
 
@@ -144,7 +147,7 @@ final class DemoGuiScreens {
             String label,
             GuiVector position,
             float width,
-            GuiButtonAction action) {
+            GuiAction action) {
         return new GuiRectangle(
                 id,
                 position,

@@ -1,5 +1,8 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiComponent;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +31,7 @@ final class GuiScreenSet {
         for (GuiScreen screen : screensById.values()) {
             for (GuiComponent component : screen.components()) {
                 if (component instanceof GuiRectangle rectangle
-                        && rectangle.action().orElse(null) instanceof GuiButtonAction.Navigate navigate
+                        && rectangle.action().orElse(null) instanceof GuiAction.Navigate navigate
                         && !screensById.containsKey(navigate.targetScreenId())) {
                     throw new IllegalArgumentException(
                             "Unknown target GUI screen ID: " + navigate.targetScreenId());
@@ -46,7 +49,7 @@ final class GuiScreenSet {
 
     GuiScreen targetScreen(GuiRectangle rectangle) {
         Objects.requireNonNull(rectangle, "rectangle");
-        if (!(rectangle.action().orElse(null) instanceof GuiButtonAction.Navigate navigate)) {
+        if (!(rectangle.action().orElse(null) instanceof GuiAction.Navigate navigate)) {
             throw new IllegalArgumentException("GUI rectangle does not navigate: " + rectangle.id());
         }
         GuiScreen targetScreen = this.screens.get(navigate.targetScreenId());

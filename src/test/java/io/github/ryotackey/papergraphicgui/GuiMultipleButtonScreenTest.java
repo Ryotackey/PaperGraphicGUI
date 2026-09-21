@@ -1,5 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,7 +42,7 @@ final class GuiMultipleButtonScreenTest {
                 4,
                 buttons.stream()
                         .map(button -> assertInstanceOf(
-                                        GuiButtonAction.SendMessage.class,
+                                        GuiAction.SendMessage.class,
                                         button.action().orElseThrow())
                                 .message())
                         .collect(Collectors.toSet())
@@ -69,7 +71,7 @@ final class GuiMultipleButtonScreenTest {
                 0.4F,
                 org.bukkit.Material.BLACK_CONCRETE,
                 Component.text("Button"),
-                new GuiButtonAction.SendMessage(Component.text("Clicked")));
+                new GuiAction.SendMessage(Component.text("Clicked")));
     }
 
     private static List<GuiRectangle> buttons(GuiScreen screen) {

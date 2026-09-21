@@ -1,5 +1,9 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiComponent;
+import io.github.ryotackey.papergraphicgui.component.GuiIcon;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -145,12 +149,12 @@ final class FloatingGuiManager {
             }
 
             switch (definition.action().orElseThrow()) {
-                case GuiButtonAction.Navigate ignored -> {
+                case GuiAction.Navigate ignored -> {
                     GuiScreen nextScreen = session.screens().targetScreen(definition);
                     this.sessions.put(
                             player.getUniqueId(), renderScreen(player, session, nextScreen));
                 }
-                case GuiButtonAction.SendMessage message ->
+                case GuiAction.SendMessage message ->
                     player.sendMessage(message.message());
             }
             return true;
@@ -208,11 +212,15 @@ final class FloatingGuiManager {
     }
 
     private BlockDisplay spawnRectangle(
-            Location location, float width, float height, org.bukkit.Material material) {
+            Location location, float width, float height, org.bukkit.Material blockMaterial) {
+        if (!blockMaterial.isBlock()) {
+            throw new IllegalArgumentException(
+                    "GUI rectangle blockMaterial must be a block: " + blockMaterial);
+        }
         return location.getWorld().spawn(location, BlockDisplay.class, display -> {
             configureEntity(display);
             display.setBillboard(Display.Billboard.FIXED);
-            display.setBlock(material.createBlockData());
+            display.setBlock(blockMaterial.createBlockData());
             display.setTransformation(new Transformation(
                     new Vector3f(-width * 0.5F, -height * 0.5F, -RECTANGLE_DEPTH * 0.5F),
                     new Quaternionf(),
@@ -248,7 +256,7 @@ final class FloatingGuiManager {
                                 location,
                                 rectangle.width(),
                                 rectangle.height(),
-                                rectangle.material());
+                                rectangle.blockMaterial());
                         if (rectangle.label().isEmpty()) {
                             yield List.of(background);
                         }

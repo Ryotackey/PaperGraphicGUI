@@ -1,5 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -30,7 +32,7 @@ final class GuiScreenSetTest {
         assertEquals("next", next.id());
         assertEquals(
                 "second",
-                assertInstanceOf(GuiButtonAction.Navigate.class, next.action().orElseThrow())
+                assertInstanceOf(GuiAction.Navigate.class, next.action().orElseThrow())
                         .targetScreenId());
         assertEquals(
                 Component.text("  Next  ", NamedTextColor.WHITE),
@@ -43,7 +45,7 @@ final class GuiScreenSetTest {
         assertEquals("back", back.id());
         assertEquals(
                 "main",
-                assertInstanceOf(GuiButtonAction.Navigate.class, back.action().orElseThrow())
+                assertInstanceOf(GuiAction.Navigate.class, back.action().orElseThrow())
                         .targetScreenId());
         assertSame(main, returnedMain);
     }
@@ -93,7 +95,7 @@ final class GuiScreenSetTest {
                         0.4F,
                         org.bukkit.Material.BLACK_CONCRETE,
                         Component.text("Button"),
-                        new GuiButtonAction.Navigate(targetScreenId))));
+                        new GuiAction.Navigate(targetScreenId))));
     }
 
     private static GuiRectangle onlyButton(GuiScreen screen) {

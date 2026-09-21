@@ -1,5 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.component.GuiAction;
+import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -19,7 +21,7 @@ final class GuiComponentTest {
                 0.5F,
                 Material.BLACK_CONCRETE,
                 Component.text("Button"),
-                new GuiButtonAction.SendMessage(Component.text("Clicked")));
+                new GuiAction.SendMessage(Component.text("Clicked")));
 
         assertThrows(
                 IllegalArgumentException.class,

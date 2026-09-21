@@ -1,7 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
-record GuiVector(double x, double y, double z) {
-    GuiVector {
+public record GuiVector(double x, double y, double z) {
+    public GuiVector {
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
             throw new IllegalArgumentException("GUI vector coordinates must be finite");
         }

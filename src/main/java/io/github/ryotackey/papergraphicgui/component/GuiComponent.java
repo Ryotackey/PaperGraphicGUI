@@ -1,6 +1,9 @@
-package io.github.ryotackey.papergraphicgui;
+package io.github.ryotackey.papergraphicgui.component;
 
-sealed interface GuiComponent permits GuiIcon, GuiRectangle {
+import io.github.ryotackey.papergraphicgui.GuiVector;
+import java.util.Objects;
+
+public sealed interface GuiComponent permits GuiIcon, GuiRectangle {
     String id();
 
     GuiVector position();
@@ -13,9 +16,7 @@ sealed interface GuiComponent permits GuiIcon, GuiRectangle {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("GUI component ID must not be blank");
         }
-        if (position == null) {
-            throw new NullPointerException("position");
-        }
+        Objects.requireNonNull(position, "position");
         if (!Float.isFinite(width) || width <= 0.0F) {
             throw new IllegalArgumentException("GUI component width must be finite and positive");
         }
