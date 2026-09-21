@@ -18,9 +18,9 @@ final class GuiScreenSetTest {
         GuiScreenSet screens = DemoGuiScreens.createSet();
 
         GuiScreen main = screens.initialScreen();
-        GuiButton next = onlyButton(main);
+        GuiRectangleButton next = onlyButton(main);
         GuiScreen second = screens.targetScreen(next);
-        GuiButton back = onlyButton(second);
+        GuiRectangleButton back = onlyButton(second);
         GuiScreen returnedMain = screens.targetScreen(back);
 
         assertEquals("main", main.id());
@@ -53,15 +53,8 @@ final class GuiScreenSetTest {
         GuiScreen longButton = screens.targetScreen(onlyButton(mediumButton));
         GuiScreen returnedShortButton = screens.targetScreen(onlyButton(longButton));
 
-        GuiButtonHitbox shortHitbox =
-                GuiButtonHitboxCalculator.calculate(onlyButton(shortButton).label());
-        GuiButtonHitbox mediumHitbox =
-                GuiButtonHitboxCalculator.calculate(onlyButton(mediumButton).label());
-        GuiButtonHitbox longHitbox =
-                GuiButtonHitboxCalculator.calculate(onlyButton(longButton).label());
-
-        assertTrue(shortHitbox.width() < mediumHitbox.width());
-        assertTrue(mediumHitbox.width() < longHitbox.width());
+        assertTrue(onlyButton(shortButton).width() < onlyButton(mediumButton).width());
+        assertTrue(onlyButton(mediumButton).width() < onlyButton(longButton).width());
         assertSame(shortButton, returnedShortButton);
     }
 
@@ -89,15 +82,21 @@ final class GuiScreenSetTest {
                 screenId,
                 Component.text("Title"),
                 new GuiVector(0.0, 0.35, 0.0),
-                List.of(new GuiButton(
+                List.of(new GuiRectangleButton(
                         buttonId,
-                        Component.text("Button"),
                         new GuiVector(0.0, -0.15, 0.0),
+                        1.0F,
+                        0.4F,
+                        org.bukkit.Material.BLACK_CONCRETE,
+                        Component.text("Button"),
                         new GuiButtonAction.Navigate(targetScreenId))));
     }
 
-    private static GuiButton onlyButton(GuiScreen screen) {
-        assertEquals(1, screen.buttons().size());
-        return screen.buttons().getFirst();
+    private static GuiRectangleButton onlyButton(GuiScreen screen) {
+        return screen.components().stream()
+                .filter(GuiRectangleButton.class::isInstance)
+                .map(GuiRectangleButton.class::cast)
+                .findFirst()
+                .orElseThrow();
     }
 }

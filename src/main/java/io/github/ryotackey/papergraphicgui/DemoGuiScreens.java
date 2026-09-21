@@ -4,10 +4,13 @@ import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 final class DemoGuiScreens {
     private static final GuiVector TITLE_POSITION = new GuiVector(0.0, 0.35, 0.0);
     private static final GuiVector BUTTON_POSITION = new GuiVector(0.0, -0.15, 0.0);
+    private static final float BUTTON_HEIGHT = 0.38F;
 
     private DemoGuiScreens() {}
 
@@ -16,19 +19,21 @@ final class DemoGuiScreens {
                 "main",
                 title("Main Screen"),
                 TITLE_POSITION,
-                List.of(new GuiButton(
+                List.of(button(
                         "next",
-                        buttonLabel("Next"),
+                        "Next",
                         BUTTON_POSITION,
+                        1.15F,
                         new GuiButtonAction.Navigate("second"))));
         GuiScreen second = new GuiScreen(
                 "second",
                 title("Second Screen"),
                 TITLE_POSITION,
-                List.of(new GuiButton(
+                List.of(button(
                         "back",
-                        buttonLabel("Back"),
+                        "Back",
                         BUTTON_POSITION,
+                        1.15F,
                         new GuiButtonAction.Navigate("main"))));
 
         return new GuiScreenSet(main.id(), List.of(main, second));
@@ -39,28 +44,31 @@ final class DemoGuiScreens {
                 "short",
                 title("Short Button"),
                 TITLE_POSITION,
-                List.of(new GuiButton(
+                List.of(button(
                         "short-next",
-                        buttonLabel("OK"),
+                        "OK",
                         BUTTON_POSITION,
+                        0.75F,
                         new GuiButtonAction.Navigate("medium"))));
         GuiScreen mediumButton = new GuiScreen(
                 "medium",
                 title("Medium Button"),
                 TITLE_POSITION,
-                List.of(new GuiButton(
+                List.of(button(
                         "medium-next",
-                        buttonLabel("Continue"),
+                        "Continue",
                         BUTTON_POSITION,
+                        1.35F,
                         new GuiButtonAction.Navigate("long"))));
         GuiScreen longButton = new GuiScreen(
                 "long",
                 title("Long Button"),
                 TITLE_POSITION,
-                List.of(new GuiButton(
+                List.of(button(
                         "long-next",
-                        buttonLabel("Open Advanced Settings"),
+                        "Open Advanced Settings",
                         BUTTON_POSITION,
+                        2.65F,
                         new GuiButtonAction.Navigate("short"))));
 
         return new GuiScreenSet(
@@ -90,14 +98,61 @@ final class DemoGuiScreens {
         return new GuiScreenSet(grid.id(), List.of(grid));
     }
 
-    private static GuiButton gridButton(
+    static GuiScreenSet createComponentSampleSet() {
+        GuiScreen components = new GuiScreen(
+                "components",
+                title("Shape & Icon Components"),
+                TITLE_POSITION,
+                List.of(
+                        new GuiRectangle(
+                                "panel",
+                                new GuiVector(0.0, -0.05, 0.04),
+                                2.5F,
+                                1.15F,
+                                Material.GRAY_CONCRETE),
+                        new GuiIcon(
+                                "diamond-icon",
+                                new GuiVector(-0.8, -0.15, -0.03),
+                                0.45F,
+                                0.45F,
+                                new ItemStack(Material.DIAMOND)),
+                        button(
+                                "sample-button",
+                                "Click me",
+                                new GuiVector(0.3, -0.15, -0.03),
+                                1.35F,
+                                new GuiButtonAction.SendMessage(Component.text(
+                                        "Clicked!", NamedTextColor.GREEN)))));
+        return new GuiScreenSet(components.id(), List.of(components));
+    }
+
+    private static GuiRectangleButton gridButton(
             String id, String label, double x, double y, NamedTextColor messageColor) {
-        return new GuiButton(
+        return new GuiRectangleButton(
                 id,
-                buttonLabel(label),
                 new GuiVector(x, y, 0.0),
+                1.55F,
+                BUTTON_HEIGHT,
+                Material.BLACK_CONCRETE,
+                buttonLabel(label),
                 new GuiButtonAction.SendMessage(
                         Component.text("Clicked: " + label, messageColor)));
+    }
+
+    private static GuiRectangleButton button(
+            String id,
+            String label,
+            GuiVector position,
+            float width,
+            GuiButtonAction action) {
+        return new GuiRectangleButton(
+                id,
+                position,
+                width,
+                BUTTON_HEIGHT,
+                Material.BLACK_CONCRETE,
+                buttonLabel(label),
+                action);
     }
 
     private static Component title(String text) {

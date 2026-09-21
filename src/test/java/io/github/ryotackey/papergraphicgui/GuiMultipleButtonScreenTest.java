@@ -15,13 +15,13 @@ final class GuiMultipleButtonScreenTest {
     @Test
     void definesGridAsARegularScreenWithFourButtons() {
         GuiScreen screen = DemoGuiScreens.createGridSet().initialScreen();
-        List<GuiButton> buttons = screen.buttons();
+        List<GuiRectangleButton> buttons = buttons(screen);
 
         assertEquals("grid", screen.id());
         assertEquals(4, buttons.size());
         assertEquals(
                 Set.of("top-left", "top-right", "bottom-left", "bottom-right"),
-                buttons.stream().map(GuiButton::id).collect(Collectors.toSet()));
+                buttons.stream().map(GuiRectangleButton::id).collect(Collectors.toSet()));
         assertTrue(buttons.stream().anyMatch(button -> button.position().x() < 0.0
                 && button.position().y() > 0.0));
         assertTrue(buttons.stream().anyMatch(button -> button.position().x() > 0.0
@@ -34,7 +34,7 @@ final class GuiMultipleButtonScreenTest {
 
     @Test
     void givesEachGridButtonASeparateMessageAction() {
-        List<GuiButton> buttons = DemoGuiScreens.createGridSet().initialScreen().buttons();
+        List<GuiRectangleButton> buttons = buttons(DemoGuiScreens.createGridSet().initialScreen());
 
         assertEquals(
                 4,
@@ -48,8 +48,8 @@ final class GuiMultipleButtonScreenTest {
 
     @Test
     void rejectsDuplicateButtonIdsWithinOneScreen() {
-        GuiButton first = button("duplicate");
-        GuiButton duplicate = button("duplicate");
+        GuiRectangleButton first = button("duplicate");
+        GuiRectangleButton duplicate = button("duplicate");
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -60,11 +60,21 @@ final class GuiMultipleButtonScreenTest {
                         List.of(first, duplicate)));
     }
 
-    private static GuiButton button(String id) {
-        return new GuiButton(
+    private static GuiRectangleButton button(String id) {
+        return new GuiRectangleButton(
                 id,
-                Component.text("Button"),
                 new GuiVector(0.0, 0.0, 0.0),
+                1.0F,
+                0.4F,
+                org.bukkit.Material.BLACK_CONCRETE,
+                Component.text("Button"),
                 new GuiButtonAction.SendMessage(Component.text("Clicked")));
+    }
+
+    private static List<GuiRectangleButton> buttons(GuiScreen screen) {
+        return screen.components().stream()
+                .filter(GuiRectangleButton.class::isInstance)
+                .map(GuiRectangleButton.class::cast)
+                .toList();
     }
 }

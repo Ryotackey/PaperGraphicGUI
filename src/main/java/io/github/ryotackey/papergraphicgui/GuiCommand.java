@@ -48,7 +48,13 @@ final class GuiCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(Component.text("Usage: /gui [close|sizes|grid]", NamedTextColor.RED));
+        if (args.length == 1 && args[0].equalsIgnoreCase("components")) {
+            this.guiManager.open(player, DemoGuiScreens.createComponentSampleSet());
+            return true;
+        }
+
+        player.sendMessage(Component.text(
+                "Usage: /gui [close|sizes|grid|components]", NamedTextColor.RED));
         return true;
     }
 }
