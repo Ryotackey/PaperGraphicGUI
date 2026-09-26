@@ -1,5 +1,8 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.screen.GuiScreen;
+import io.github.ryotackey.papergraphicgui.screen.GuiScreenSet;
+
 import io.github.ryotackey.papergraphicgui.component.GuiAction;
 import io.github.ryotackey.papergraphicgui.component.GuiIcon;
 import io.github.ryotackey.papergraphicgui.component.GuiRectangle;

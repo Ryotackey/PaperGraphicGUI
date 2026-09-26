@@ -1,5 +1,9 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.api.FloatingGuiApi;
+import io.github.ryotackey.papergraphicgui.screen.GuiScreen;
+import io.github.ryotackey.papergraphicgui.screen.GuiScreenSet;
+
 import io.github.ryotackey.papergraphicgui.component.GuiAction;
 import io.github.ryotackey.papergraphicgui.component.GuiComponent;
 import io.github.ryotackey.papergraphicgui.component.GuiIcon;
@@ -35,7 +39,7 @@ import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-final class FloatingGuiManager {
+final class FloatingGuiManager implements FloatingGuiApi {
     private static final double GUI_DISTANCE = 2.5;
     private static final int CLICK_DEBOUNCE_TICKS = 4;
     private static final GuiVector INPUT_CAPTURE_POSITION = new GuiVector(0.0, -1.0, 0.0);
@@ -68,6 +72,15 @@ final class FloatingGuiManager {
     }
 
     void open(Player owner, GuiScreenSet screens) {
+        open(this.plugin, owner, screens);
+    }
+
+    @Override
+    public void open(Plugin ownerPlugin, Player owner, GuiScreenSet screens) {
+        java.util.Objects.requireNonNull(ownerPlugin, "ownerPlugin");
+        if (!ownerPlugin.isEnabled()) {
+            throw new IllegalStateException("GUI owner plugin is disabled: " + ownerPlugin.getName());
+        }
         close(owner);
 
         GuiTransform transform = calculateTransform(owner);
@@ -99,6 +112,7 @@ final class FloatingGuiManager {
                     owner.getUniqueId(),
                     new FloatingGuiSession(
                             owner.getUniqueId(),
+                            ownerPlugin,
                             anchor.clone(),
                             transform,
                             screens,
@@ -116,7 +130,8 @@ final class FloatingGuiManager {
         }
     }
 
-    boolean close(Player owner) {
+    @Override
+    public boolean close(Player owner) {
         return close(owner.getUniqueId(), owner);
     }
 
@@ -126,12 +141,21 @@ final class FloatingGuiManager {
         ownerUuids.forEach(this::close);
     }
 
+    void closeOwnedBy(Plugin ownerPlugin) {
+        List<UUID> ownerUuids = this.sessions.values().stream()
+                .filter(session -> session.ownerPlugin().equals(ownerPlugin))
+                .map(FloatingGuiSession::ownerUuid)
+                .toList();
+        ownerUuids.forEach(this::close);
+    }
+
     void shutdown() {
         this.hoverTask.cancel();
         closeAll();
     }
 
-    boolean isOpen(Player player) {
+    @Override
+    public boolean isOpen(Player player) {
         return this.sessions.containsKey(player.getUniqueId());
     }
 
@@ -151,6 +175,10 @@ final class FloatingGuiManager {
     boolean handleClick(Player player) {
         FloatingGuiSession session = this.sessions.get(player.getUniqueId());
         if (session == null || !session.ownerUuid().equals(player.getUniqueId())) {
+            return false;
+        }
+        if (!session.ownerPlugin().isEnabled()) {
+            close(player);
             return false;
         }
 
@@ -175,6 +203,17 @@ final class FloatingGuiManager {
             }
 
             switch (definition.action().orElseThrow()) {
+                case GuiAction.Callback callback -> {
+                    try {
+                        callback.callback().execute(player);
+                    } catch (RuntimeException exception) {
+                        this.plugin.getLogger().log(
+                                Level.SEVERE,
+                                "GUI callback failed for component " + definition.id()
+                                        + " owned by " + session.ownerPlugin().getName(),
+                                exception);
+                    }
+                }
                 case GuiAction.Close ignored -> close(player);
                 case GuiAction.Navigate ignored -> {
                     GuiScreen nextScreen = session.screens().targetScreen(definition);
@@ -592,6 +631,7 @@ final class FloatingGuiManager {
 
     private record FloatingGuiSession(
             UUID ownerUuid,
+            Plugin ownerPlugin,
             Location anchor,
             GuiTransform transform,
             GuiScreenSet screens,
@@ -605,6 +645,7 @@ final class FloatingGuiManager {
                 GuiScreen newScreen, List<RenderedComponent> newComponents) {
             return new FloatingGuiSession(
                     this.ownerUuid,
+                    this.ownerPlugin,
                     this.anchor,
                     this.transform,
                     this.screens,
@@ -619,6 +660,7 @@ final class FloatingGuiManager {
         FloatingGuiSession withHover(String newHoveredComponentId, TextDisplay newTooltipDisplay) {
             return new FloatingGuiSession(
                     this.ownerUuid,
+                    this.ownerPlugin,
                     this.anchor,
                     this.transform,
                     this.screens,

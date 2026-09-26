@@ -1,4 +1,4 @@
-package io.github.ryotackey.papergraphicgui;
+package io.github.ryotackey.papergraphicgui.screen;
 
 import io.github.ryotackey.papergraphicgui.component.GuiAction;
 import io.github.ryotackey.papergraphicgui.component.GuiComponent;
@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-final class GuiScreenSet {
+public final class GuiScreenSet {
     private final String initialScreenId;
     private final Map<String, GuiScreen> screens;
 
-    GuiScreenSet(String initialScreenId, List<GuiScreen> screens) {
+    public GuiScreenSet(String initialScreenId, List<GuiScreen> screens) {
         if (initialScreenId == null || initialScreenId.isBlank()) {
             throw new IllegalArgumentException("Initial GUI screen ID must not be blank");
         }
@@ -43,11 +43,11 @@ final class GuiScreenSet {
         this.screens = Map.copyOf(screensById);
     }
 
-    GuiScreen initialScreen() {
+    public GuiScreen initialScreen() {
         return this.screens.get(this.initialScreenId);
     }
 
-    GuiScreen targetScreen(GuiRectangle rectangle) {
+    public GuiScreen targetScreen(GuiRectangle rectangle) {
         Objects.requireNonNull(rectangle, "rectangle");
         if (!(rectangle.action().orElse(null) instanceof GuiAction.Navigate navigate)) {
             throw new IllegalArgumentException("GUI rectangle does not navigate: " + rectangle.id());

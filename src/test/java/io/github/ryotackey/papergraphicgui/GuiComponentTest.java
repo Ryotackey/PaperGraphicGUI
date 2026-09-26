@@ -1,5 +1,7 @@
 package io.github.ryotackey.papergraphicgui;
 
+import io.github.ryotackey.papergraphicgui.screen.GuiScreen;
+
 import io.github.ryotackey.papergraphicgui.component.GuiAction;
 import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
 import static org.junit.jupiter.api.Assertions.assertThrows;
