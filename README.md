@@ -73,3 +73,7 @@ public final class ExamplePlugin extends JavaPlugin {
 `open` に渡したPluginが無効化されると、そのPluginが所有するGUIは自動的に閉じられます。同じプレイヤーへ別のGUIを開いた場合は、既存GUIを安全に閉じて置き換えます。
 
 独自CallbackはPaperのメインスレッド上で実行されます。Callbackが実行時例外を投げた場合、PaperGraphicGUIはスタックトレースをログへ記録し、GUI Sessionを維持します。
+
+## サンプルプラグイン
+
+実際に別PluginからAPIを利用するビルド可能な例は、[`examples/simple-plugin`](examples/simple-plugin) にあります。`/examplegui` で独自Callbackを持つGUIを開きます。

@@ -1,0 +1,10 @@
+name: PaperGraphicGUIExample
+version: 1.0.0
+main: io.github.ryotackey.example.PaperGraphicGuiExamplePlugin
+api-version: '26.2'
+depend:
+  - PaperGraphicGUI
+commands:
+  examplegui:
+    description: Opens the PaperGraphicGUI API example
+    usage: /examplegui
