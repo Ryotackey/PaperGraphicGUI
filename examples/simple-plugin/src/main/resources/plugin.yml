@@ -7,4 +7,4 @@ depend:
 commands:
   examplegui:
     description: Opens the PaperGraphicGUI API example
-    usage: /examplegui
+    usage: /examplegui [disable]

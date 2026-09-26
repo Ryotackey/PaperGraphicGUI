@@ -29,7 +29,12 @@ public final class PaperGraphicGuiExamplePlugin extends JavaPlugin {
         if (command == null) {
             throw new IllegalStateException("examplegui command is missing from plugin.yml");
         }
-        command.setExecutor((sender, ignoredCommand, ignoredLabel, ignoredArgs) -> {
+        command.setExecutor((sender, ignoredCommand, ignoredLabel, args) -> {
+            if (args.length == 1 && args[0].equalsIgnoreCase("disable")) {
+                sender.sendMessage("Disabling PaperGraphicGUIExample...");
+                Bukkit.getPluginManager().disablePlugin(this);
+                return true;
+            }
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("This command can only be used by a player.");
                 return true;
