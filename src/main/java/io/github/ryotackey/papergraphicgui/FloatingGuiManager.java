@@ -163,6 +163,7 @@ final class FloatingGuiManager {
             }
 
             switch (definition.action().orElseThrow()) {
+                case GuiAction.Close ignored -> close(player);
                 case GuiAction.Navigate ignored -> {
                     GuiScreen nextScreen = session.screens().targetScreen(definition);
                     this.sessions.put(

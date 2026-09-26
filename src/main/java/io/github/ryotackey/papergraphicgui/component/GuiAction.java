@@ -4,6 +4,8 @@ import java.util.Objects;
 import net.kyori.adventure.text.Component;
 
 public sealed interface GuiAction {
+    record Close() implements GuiAction {}
+
     record Navigate(String targetScreenId) implements GuiAction {
         public Navigate {
             if (targetScreenId == null || targetScreenId.isBlank()) {
