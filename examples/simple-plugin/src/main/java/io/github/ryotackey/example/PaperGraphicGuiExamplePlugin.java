@@ -47,7 +47,7 @@ public final class PaperGraphicGuiExamplePlugin extends JavaPlugin {
     private void openExampleGui(Player player) {
         GuiRectangle helloButton = new GuiRectangle(
                 "hello",
-                new GuiVector(0.0, -0.15, 0.0),
+                new GuiVector(0.0, 0.0, 0.0),
                 1.4F,
                 0.4F,
                 Material.LIGHT_BLUE_CONCRETE,
@@ -56,11 +56,23 @@ public final class PaperGraphicGuiExamplePlugin extends JavaPlugin {
                         Component.text("Hello from the example plugin!", NamedTextColor.GREEN))),
                 Component.text("Runs a custom callback", NamedTextColor.GRAY));
 
+        GuiRectangle errorButton = new GuiRectangle(
+                "throw-error",
+                new GuiVector(0.0, -0.55, 0.0),
+                1.4F,
+                0.4F,
+                Material.RED_CONCRETE,
+                Component.text("Throw error", NamedTextColor.WHITE),
+                new GuiAction.Callback(clickedPlayer -> {
+                    throw new IllegalStateException("Example callback failure");
+                }),
+                Component.text("Tests callback exception isolation", NamedTextColor.GRAY));
+
         GuiScreen mainScreen = new GuiScreen(
                 "main",
                 Component.text("Example Plugin", NamedTextColor.AQUA),
                 new GuiVector(0.0, 0.4, 0.0),
-                List.of(helloButton));
+                List.of(helloButton, errorButton));
 
         GuiScreenSet screens = new GuiScreenSet(mainScreen.id(), List.of(mainScreen));
         this.guiApi.open(this, player, screens);
