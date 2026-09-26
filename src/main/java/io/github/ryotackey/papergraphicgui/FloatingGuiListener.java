@@ -9,6 +9,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -91,6 +92,14 @@ final class FloatingGuiListener implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         this.guiManager.close(event.getEntity());
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (this.guiManager.recoverPersistedFreezeState(event.getPlayer())) {
+            event.getPlayer().sendMessage(
+                    net.kyori.adventure.text.Component.text("Recovered GUI player state."));
+        }
     }
 
     @EventHandler

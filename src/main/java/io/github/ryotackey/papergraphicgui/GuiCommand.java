@@ -31,6 +31,13 @@ final class GuiCommand implements CommandExecutor {
             return true;
         }
 
+        if (args.length == 1 && args[0].equalsIgnoreCase("recover")) {
+            this.guiManager.recover(player);
+            player.sendMessage(Component.text(
+                    "Recovered gravity and movement settings.", NamedTextColor.GREEN));
+            return true;
+        }
+
         if (args.length == 1 && args[0].equalsIgnoreCase("close")) {
             if (!this.guiManager.close(player)) {
                 player.sendMessage(Component.text("No GUI is open.", NamedTextColor.RED));
@@ -54,7 +61,7 @@ final class GuiCommand implements CommandExecutor {
         }
 
         player.sendMessage(Component.text(
-                "Usage: /gui [close|sizes|grid|components]", NamedTextColor.RED));
+                "Usage: /gui [close|recover|sizes|grid|components]", NamedTextColor.RED));
         return true;
     }
 }

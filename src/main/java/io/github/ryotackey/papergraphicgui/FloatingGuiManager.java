@@ -17,6 +17,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.BlockDisplay;
@@ -26,6 +27,8 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -49,9 +52,17 @@ final class FloatingGuiManager {
     private final Map<UUID, PlayerFreezeState> freezeStates = new HashMap<>();
     private final Map<UUID, Integer> lastHandledClickTicks = new HashMap<>();
     private final BukkitTask hoverTask;
+    private final NamespacedKey freezeActiveKey;
+    private final NamespacedKey originalGravityKey;
+    private final NamespacedKey originalWalkSpeedKey;
+    private final NamespacedKey originalFlySpeedKey;
 
     FloatingGuiManager(Plugin plugin) {
         this.plugin = plugin;
+        this.freezeActiveKey = new NamespacedKey(plugin, "freeze_active");
+        this.originalGravityKey = new NamespacedKey(plugin, "original_gravity");
+        this.originalWalkSpeedKey = new NamespacedKey(plugin, "original_walk_speed");
+        this.originalFlySpeedKey = new NamespacedKey(plugin, "original_fly_speed");
         this.hoverTask = Bukkit.getScheduler()
                 .runTaskTimer(plugin, this::updateHoverStates, 1L, 2L);
     }
@@ -489,13 +500,14 @@ final class FloatingGuiManager {
     private void freezePlayer(Player player) {
         UUID ownerUuid = player.getUniqueId();
         Location location = player.getLocation();
-        this.freezeStates.put(
-                ownerUuid,
-                new PlayerFreezeState(
-                        player.hasGravity(),
-                        player.getWalkSpeed(),
-                        player.getFlySpeed(),
-                        new GuiVector(location.getX(), location.getY(), location.getZ())));
+        PlayerFreezeState state = new PlayerFreezeState(
+                player.hasGravity(),
+                player.getWalkSpeed(),
+                player.getFlySpeed(),
+                new GuiVector(location.getX(), location.getY(), location.getZ()));
+
+        this.freezeStates.put(ownerUuid, state);
+        persistFreezeState(player, state);
         player.setVelocity(new Vector());
         player.setFallDistance(0.0F);
         player.setGravity(false);
@@ -505,17 +517,71 @@ final class FloatingGuiManager {
 
     private void restorePlayer(UUID ownerUuid, Player player) {
         PlayerFreezeState state = this.freezeStates.remove(ownerUuid);
-        if (state == null || player == null) {
+        if (player == null) {
             return;
         }
+        if (state != null) {
+            applyFreezeState(player, state);
+            clearPersistedFreezeState(player);
+            return;
+        }
+        recoverPersistedFreezeState(player);
+    }
 
+    boolean recoverPersistedFreezeState(Player player) {
+        PersistentDataContainer data = player.getPersistentDataContainer();
+        if (!data.has(this.freezeActiveKey, PersistentDataType.BYTE)) {
+            return false;
+        }
+
+        Byte gravity = data.get(this.originalGravityKey, PersistentDataType.BYTE);
+        Float walkSpeed = data.get(this.originalWalkSpeedKey, PersistentDataType.FLOAT);
+        Float flySpeed = data.get(this.originalFlySpeedKey, PersistentDataType.FLOAT);
+        PlayerFreezeState state = new PlayerFreezeState(
+                gravity == null || gravity != 0,
+                walkSpeed == null ? 0.2F : walkSpeed,
+                flySpeed == null ? 0.1F : flySpeed,
+                toGuiVector(player.getLocation()));
+        applyFreezeState(player, state);
+        clearPersistedFreezeState(player);
+        return true;
+    }
+
+    void recover(Player player) {
+        close(player);
+        applyFreezeState(
+                player,
+                new PlayerFreezeState(
+                        true, 0.2F, 0.1F, toGuiVector(player.getLocation())));
+        clearPersistedFreezeState(player);
+    }
+
+    private void persistFreezeState(Player player, PlayerFreezeState state) {
+        PersistentDataContainer data = player.getPersistentDataContainer();
+        data.set(
+                this.originalGravityKey,
+                PersistentDataType.BYTE,
+                state.gravityEnabled() ? (byte) 1 : (byte) 0);
+        data.set(this.originalWalkSpeedKey, PersistentDataType.FLOAT, state.walkSpeed());
+        data.set(this.originalFlySpeedKey, PersistentDataType.FLOAT, state.flySpeed());
+        data.set(this.freezeActiveKey, PersistentDataType.BYTE, (byte) 1);
+    }
+
+    private void clearPersistedFreezeState(Player player) {
+        PersistentDataContainer data = player.getPersistentDataContainer();
+        data.remove(this.freezeActiveKey);
+        data.remove(this.originalGravityKey);
+        data.remove(this.originalWalkSpeedKey);
+        data.remove(this.originalFlySpeedKey);
+    }
+
+    private static void applyFreezeState(Player player, PlayerFreezeState state) {
         player.setGravity(state.gravityEnabled());
         player.setWalkSpeed(state.walkSpeed());
         player.setFlySpeed(state.flySpeed());
         player.setVelocity(new Vector());
         player.setFallDistance(0.0F);
     }
-
     private static GuiVector toGuiVector(Location location) {
         return new GuiVector(location.getX(), location.getY(), location.getZ());
     }
