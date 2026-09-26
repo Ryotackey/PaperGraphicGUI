@@ -4,6 +4,7 @@ import io.github.ryotackey.papergraphicgui.component.GuiAction;
 import io.github.ryotackey.papergraphicgui.component.GuiComponent;
 import io.github.ryotackey.papergraphicgui.component.GuiIcon;
 import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
+import io.github.ryotackey.papergraphicgui.component.GuiText;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -226,6 +227,17 @@ final class FloatingGuiManager {
         });
     }
 
+    private TextDisplay spawnText(Location location, GuiText text) {
+        return location.getWorld().spawn(location, TextDisplay.class, display -> {
+            configureEntity(display);
+            configureTextDisplay(display);
+            display.text(text.text());
+            display.setLineWidth(text.lineWidth());
+            display.setDefaultBackground(false);
+            display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+        });
+    }
+
     private TextDisplay spawnTooltip(Location location, Component tooltip) {
         return location.getWorld().spawn(location, TextDisplay.class, display -> {
             configureEntity(display);
@@ -299,6 +311,7 @@ final class FloatingGuiManager {
                         }
                     }
                     case GuiIcon icon -> List.of(spawnIcon(location, icon));
+                    case GuiText text -> List.of(spawnText(location, text));
                 };
                 components.add(new RenderedComponent(definition, entities));
             }

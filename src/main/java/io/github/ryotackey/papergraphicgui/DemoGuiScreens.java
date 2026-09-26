@@ -3,6 +3,7 @@ package io.github.ryotackey.papergraphicgui;
 import io.github.ryotackey.papergraphicgui.component.GuiAction;
 import io.github.ryotackey.papergraphicgui.component.GuiIcon;
 import io.github.ryotackey.papergraphicgui.component.GuiRectangle;
+import io.github.ryotackey.papergraphicgui.component.GuiText;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -116,9 +117,9 @@ final class DemoGuiScreens {
                 List.of(
                         new GuiRectangle(
                                 "panel",
-                                new GuiVector(0.0, -0.32, 0.06),
+                                new GuiVector(0.0, -0.42, 0.06),
                                 3.4F,
-                                1.65F,
+                                1.9F,
                                 Material.LIGHT_GRAY_CONCRETE),
                         new GuiRectangle(
                                 "red-swatch",
@@ -195,7 +196,14 @@ final class DemoGuiScreens {
                                 "Creative and mysterious",
                                 0.82,
                                 -0.72,
-                                Material.PURPLE_CONCRETE)));
+                                Material.PURPLE_CONCRETE),
+                        new GuiText(
+                                "instructions",
+                                new GuiVector(0.0, -1.20, -0.03),
+                                Component.text(
+                                        "Sneak to close",
+                                        NamedTextColor.DARK_GRAY),
+                                120)));
         return new GuiScreenSet(components.id(), List.of(components));
     }
 
