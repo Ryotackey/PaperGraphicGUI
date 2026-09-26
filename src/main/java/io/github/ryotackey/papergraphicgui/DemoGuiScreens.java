@@ -203,7 +203,7 @@ final class DemoGuiScreens {
                                 Component.text(
                                         "Look at a color for details · Sneak to close",
                                         NamedTextColor.DARK_GRAY),
-                                260)));
+                                120)));
         return new GuiScreenSet(components.id(), List.of(components));
     }
 
