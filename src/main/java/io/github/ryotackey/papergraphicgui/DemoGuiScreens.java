@@ -199,9 +199,9 @@ final class DemoGuiScreens {
                                 Material.PURPLE_CONCRETE),
                         new GuiText(
                                 "instructions",
-                                new GuiVector(0.0, -1.13, -0.03),
+                                new GuiVector(0.0, -1.20, -0.03),
                                 Component.text(
-                                        "Look at a color for details · Sneak to close",
+                                        "Sneak to close",
                                         NamedTextColor.DARK_GRAY),
                                 120)));
         return new GuiScreenSet(components.id(), List.of(components));
