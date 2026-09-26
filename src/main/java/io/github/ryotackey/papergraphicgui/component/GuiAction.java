@@ -4,6 +4,12 @@ import java.util.Objects;
 import net.kyori.adventure.text.Component;
 
 public sealed interface GuiAction {
+    record Callback(GuiCallback callback) implements GuiAction {
+        public Callback {
+            Objects.requireNonNull(callback, "callback");
+        }
+    }
+
     record Close() implements GuiAction {}
 
     record Navigate(String targetScreenId) implements GuiAction {

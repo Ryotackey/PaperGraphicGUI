@@ -1,5 +1,6 @@
-package io.github.ryotackey.papergraphicgui;
+package io.github.ryotackey.papergraphicgui.screen;
 
+import io.github.ryotackey.papergraphicgui.GuiVector;
 import io.github.ryotackey.papergraphicgui.component.GuiComponent;
 import java.util.HashSet;
 import java.util.List;
@@ -7,8 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 import net.kyori.adventure.text.Component;
 
-record GuiScreen(String id, Component title, GuiVector titlePosition, List<GuiComponent> components) {
-    GuiScreen {
+public record GuiScreen(String id, Component title, GuiVector titlePosition, List<GuiComponent> components) {
+    public GuiScreen {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("GUI screen ID must not be blank");
         }
